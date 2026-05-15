@@ -1,1563 +1,480 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AbsenPoin — Sistem Absensi & Poin</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0f0f11;
-    --surface: #18181c;
-    --surface2: #22222a;
-    --border: #2e2e38;
-    --accent: #7c6af7;
-    --accent2: #3de8b0;
-    --warn: #f7a23d;
-    --danger: #f76a6a;
-    --text: #f0eff8;
-    --muted: #8885a8;
-    --tag-bg: #1e1d2a;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Space Grotesk', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* LAYOUT */
-  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
-
-  /* SIDEBAR */
-  .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 28px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-  }
-  .logo {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-dot {
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-  }
-  .nav-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    padding: 16px 8px 6px;
-    font-weight: 600;
-  }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-  }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active { background: rgba(124,106,247,0.15); color: var(--accent); }
-  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
-
-  /* MAIN */
-  .main { padding: 36px 40px; overflow-y: auto; }
-  .page { display: none; }
-  .page.active { display: block; }
-
-  /* HEADER */
-  .page-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: 32px;
-  }
-  .page-title { font-size: 26px; font-weight: 700; color: var(--text); }
-  .page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
-
-  /* BUTTONS */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    font-family: 'Space Grotesk', sans-serif;
-    transition: all 0.15s;
-  }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #6b59e8; }
-  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
-  .btn-outline:hover { background: var(--surface2); }
-  .btn-success { background: rgba(61,232,176,0.15); color: var(--accent2); border: 1px solid rgba(61,232,176,0.3); }
-  .btn-danger { background: rgba(247,106,106,0.12); color: var(--danger); border: 1px solid rgba(247,106,106,0.3); }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-
-  /* STATS GRID */
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 22px;
-  }
-  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
-  .stat-val { font-size: 28px; font-weight: 700; }
-  .stat-val.accent { color: var(--accent); }
-  .stat-val.green { color: var(--accent2); }
-  .stat-val.warn { color: var(--warn); }
-  .stat-val.danger { color: var(--danger); }
-  .stat-change { font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-  /* TABLE */
-  .table-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .table-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--border);
-  }
-  .table-title { font-size: 15px; font-weight: 600; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
-    text-align: left;
-    padding: 12px 20px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--muted);
-    font-weight: 600;
-    background: var(--tag-bg);
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--surface2); }
-  td { padding: 13px 20px; vertical-align: middle; }
-  .td-name { font-weight: 600; font-size: 13px; }
-  .td-mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
-
-  /* BADGE */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .badge-green { background: rgba(61,232,176,0.12); color: var(--accent2); }
-  .badge-purple { background: rgba(124,106,247,0.15); color: var(--accent); }
-  .badge-warn { background: rgba(247,162,61,0.12); color: var(--warn); }
-  .badge-gray { background: rgba(136,133,168,0.12); color: var(--muted); }
-  .badge-danger { background: rgba(247,106,106,0.12); color: var(--danger); }
-
-  /* POINTS CHIP */
-  .pts-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .pts-base { background: rgba(124,106,247,0.12); color: var(--accent); }
-  .pts-extra { background: rgba(61,232,176,0.1); color: var(--accent2); }
-  .pts-total { background: var(--tag-bg); color: var(--text); border: 1px solid var(--border); font-weight: 700; }
-
-  /* FORM */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group.full { grid-column: 1 / -1; }
-  label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
-  input, select, textarea {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    padding: 10px 14px;
-    transition: border 0.15s;
-    outline: none;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 80px; }
-
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    width: 520px;
-    max-width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
-
-  /* TABS */
-  .tabs { display: flex; gap: 4px; background: var(--surface2); padding: 4px; border-radius: 10px; margin-bottom: 24px; width: fit-content; }
-  .tab {
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--muted);
-    border: none;
-    background: none;
-    font-family: 'Space Grotesk', sans-serif;
-    transition: all 0.15s;
-  }
-  .tab.active { background: var(--surface); color: var(--text); }
-
-  /* GUIDE SECTIONS */
-  .guide-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .guide-step {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .guide-step:last-child { border-bottom: none; padding-bottom: 0; }
-  .step-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(124,106,247,0.2);
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .step-content p { font-size: 13px; color: var(--muted); line-height: 1.7; }
-  .step-content p + p { margin-top: 6px; }
-  .code-block {
-    background: #0b0b0d;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: #c8c5e8;
-    margin-top: 10px;
-    overflow-x: auto;
-    line-height: 1.8;
-    white-space: pre;
-  }
-  .code-comment { color: #55536a; }
-  .code-key { color: var(--accent); }
-  .code-val { color: var(--accent2); }
-  .code-str { color: var(--warn); }
-  .code-fn { color: #f77bbb; }
-
-  /* ALERT */
-  .alert {
-    display: flex;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 16px;
-    font-size: 13px;
-    line-height: 1.6;
-  }
-  .alert-info { background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.25); color: #c5bcf5; }
-  .alert-warn { background: rgba(247,162,61,0.08); border: 1px solid rgba(247,162,61,0.25); color: #f7c88a; }
-  .alert-success { background: rgba(61,232,176,0.08); border: 1px solid rgba(61,232,176,0.25); color: #7efad7; }
-
-  /* POINT FORMULA BOX */
-  .formula-box {
-    background: var(--tag-bg);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: var(--radius-sm);
-    padding: 16px 20px;
-    margin-bottom: 20px;
-  }
-  .formula-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
-  .formula-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
-  .formula-eq { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent2); }
-
-  /* AVATAR */
-  .avatar {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  /* SEARCH BAR */
-  .search-bar { position: relative; }
-  .search-bar input { padding-left: 36px; width: 220px; }
-  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); }
-
-  /* PAGINATION */
-  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
-  .page-btns { display: flex; gap: 6px; }
-  .page-btn {
-    width: 30px; height: 30px;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--text);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    font-family: 'Space Grotesk', sans-serif;
-    transition: all 0.1s;
-  }
-  .page-btn:hover, .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-  /* DIVIDER */
-  .divider { height: 1px; background: var(--border); margin: 20px 0; }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center; padding: 60px 20px; color: var(--muted);
-  }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-text { font-size: 14px; }
-
-  /* TOOLTIP-LIKE INFO */
-  .info-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .info-row:last-child { border-bottom: none; }
-  .info-label { color: var(--muted); }
-  .info-val { font-weight: 600; }
-
-  /* PROGRESS */
-  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 3px; background: var(--accent); }
-
-  .supabase-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(62,207,142,0.12); color: #3ecf8e;
-    border: 1px solid rgba(62,207,142,0.25);
-    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-  }
-</style>
-</head>
-<body>
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="logo">
-      <div class="logo-dot">👆</div>
-      AbsenPoin
-    </div>
-    <span class="nav-label">Menu</span>
-    <button class="nav-item active" onclick="showPage('dashboard')">
-      <span class="nav-icon">📊</span> Dashboard
-    </button>
-    <button class="nav-item" onclick="showPage('absensi')">
-      <span class="nav-icon">📋</span> Data Absensi
-    </button>
-    <button class="nav-item" onclick="showPage('karyawan')">
-      <span class="nav-icon">👥</span> Karyawan
-    </button>
-    <button class="nav-item" onclick="showPage('poin')">
-      <span class="nav-icon">⭐</span> Rekap Poin
-    </button>
-    <button class="nav-item" onclick="showPage('import')">
-      <span class="nav-icon">📥</span> Import Data
-    </button>
-    <span class="nav-label">Konfigurasi</span>
-    <button class="nav-item" onclick="showPage('pengaturan')">
-      <span class="nav-icon">⚙️</span> Pengaturan
-    </button>
-    <button class="nav-item" onclick="showPage('panduan')">
-      <span class="nav-icon">📖</span> Panduan Integrasi
-    </button>
-    <div style="margin-top: auto; padding-top: 20px;">
-      <div class="supabase-pill">🟢 Supabase: Demo</div>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main class="main">
-
-    <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page active">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Dashboard Absensi</div>
-          <div class="page-sub">Bulan ini: Juni 2025 • Mode: Demo (data lokal)</div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn btn-outline btn-sm" onclick="showPage('import')">📥 Import Fingerprint</button>
-          <button class="btn btn-primary btn-sm" onclick="openModal('modal-absensi')">+ Tambah Manual</button>
-        </div>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total Hadir Bulan Ini</div>
-          <div class="stat-val accent" id="stat-hadir">0</div>
-          <div class="stat-change">dari semua karyawan</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Poin Gaji Pokok</div>
-          <div class="stat-val green" id="stat-poin-pokok">0</div>
-          <div class="stat-change">weekday + weekend</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Poin Lembur</div>
-          <div class="stat-val warn" id="stat-poin-lembur">0</div>
-          <div class="stat-change">per ½ jam kelebihan</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Karyawan Aktif</div>
-          <div class="stat-val" id="stat-karyawan">0</div>
-          <div class="stat-change">terdaftar di sistem</div>
-        </div>
-      </div>
-
-      <div class="formula-box">
-        <div class="formula-title">⚡ Rumus Perhitungan Poin</div>
-        <div class="formula-row">
-          <span>Weekday (9 jam):</span>
-          <span class="formula-eq">= 1 poin gaji pokok</span>
-        </div>
-        <div class="formula-row">
-          <span>Weekend (9 jam):</span>
-          <span class="formula-eq">= 2 poin gaji pokok</span>
-        </div>
-        <div class="formula-row">
-          <span>Kelebihan jam kerja:</span>
-          <span class="formula-eq">= setiap 0,5 jam → 0,5 poin extra (lembur)</span>
-        </div>
-        <div class="formula-row" style="margin-bottom:0">
-          <span>Contoh: Weekday kerja 12,5 jam:</span>
-          <span class="formula-eq">1 (pokok) + 7 (lembur 3,5 jam = 7×0,5) = total 8 poin</span>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <div class="table-header">
-          <span class="table-title">Absensi Terbaru</span>
-          <button class="btn btn-outline btn-sm" onclick="showPage('absensi')">Lihat Semua →</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Karyawan</th>
-              <th>Tanggal</th>
-              <th>Check In</th>
-              <th>Check Out</th>
-              <th>Total Jam</th>
-              <th>Hari</th>
-              <th>Poin Pokok</th>
-              <th>Poin Lembur</th>
-              <th>Total Poin</th>
-            </tr>
-          </thead>
-          <tbody id="table-dashboard"></tbody>
-        </table>
-        <div id="empty-dashboard" class="empty-state" style="display:none">
-          <div class="empty-icon">📋</div>
-          <div class="empty-text">Belum ada data absensi.<br>Import dari fingerprint atau tambah manual.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABSENSI PAGE -->
-    <div id="page-absensi" class="page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Data Absensi</div>
-          <div class="page-sub">Semua catatan kehadiran karyawan</div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <div class="search-bar">
-            <span class="search-icon">🔍</span>
-            <input type="text" placeholder="Cari karyawan..." id="search-absensi" oninput="filterAbsensi()">
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('modal-absensi')">+ Tambah</button>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;margin-bottom:20px;">
-        <select id="filter-bulan" onchange="filterAbsensi()" style="width:160px">
-          <option value="">Semua Bulan</option>
-          <option value="2025-06">Juni 2025</option>
-          <option value="2025-05">Mei 2025</option>
-        </select>
-        <select id="filter-hari" onchange="filterAbsensi()" style="width:140px">
-          <option value="">Semua Hari</option>
-          <option value="weekday">Weekday</option>
-          <option value="weekend">Weekend</option>
-        </select>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Karyawan</th>
-              <th>Tanggal</th>
-              <th>Check In</th>
-              <th>Check Out</th>
-              <th>Total Jam</th>
-              <th>Hari</th>
-              <th>Poin Pokok</th>
-              <th>Poin Lembur</th>
-              <th>Total Poin</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="table-absensi"></tbody>
-        </table>
-        <div id="empty-absensi" class="empty-state" style="display:none">
-          <div class="empty-icon">🔍</div>
-          <div class="empty-text">Tidak ada data ditemukan.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KARYAWAN PAGE -->
-    <div id="page-karyawan" class="page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Data Karyawan</div>
-          <div class="page-sub">Kelola data karyawan yang terdaftar di sistem</div>
-        </div>
-        <button class="btn btn-primary" onclick="openModal('modal-karyawan')">+ Tambah Karyawan</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID Fingerprint</th>
-              <th>Nama</th>
-              <th>Divisi</th>
-              <th>Jabatan</th>
-              <th>Status</th>
-              <th>Total Poin Bulan Ini</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="table-karyawan"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- REKAP POIN -->
-    <div id="page-poin" class="page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Rekap Poin</div>
-          <div class="page-sub">Ringkasan akumulasi poin per karyawan</div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <select id="poin-bulan" onchange="renderPoin()" style="width:160px">
-            <option value="all">Semua Bulan</option>
-            <option value="2025-06" selected>Juni 2025</option>
-          </select>
-          <button class="btn btn-success btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Karyawan</th>
-              <th>Hari Weekday</th>
-              <th>Hari Weekend</th>
-              <th>Total Pokok</th>
-              <th>Total Lembur</th>
-              <th>TOTAL POIN</th>
-              <th>Gaji Pokok (Rp)</th>
-            </tr>
-          </thead>
-          <tbody id="table-poin"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- IMPORT PAGE -->
-    <div id="page-import" class="page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Import Data Fingerprint</div>
-          <div class="page-sub">Upload file CSV dari mesin fingerprint atau input manual</div>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('csv')">Upload CSV</button>
-        <button class="tab" onclick="switchTab('json')">Paste JSON</button>
-        <button class="tab" onclick="switchTab('api')">API Otomatis</button>
-      </div>
-
-      <div id="tab-csv">
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:12px;">📄 Format CSV yang Diharapkan</h3>
-          <div class="code-block">name,date,check_in,check_out
-<span class="code-val">Budi Santoso</span>,<span class="code-str">2025-06-02</span>,<span class="code-str">08:00</span>,<span class="code-str">17:30</span>
-<span class="code-val">Siti Rahayu</span>,<span class="code-str">2025-06-07</span>,<span class="code-str">09:00</span>,<span class="code-str">21:00</span>
-<span class="code-val">Ahmad Fauzi</span>,<span class="code-str">2025-06-08</span>,<span class="code-str">07:45</span>,<span class="code-str">17:00</span></div>
-          <p style="font-size:12px;color:var(--muted);margin-top:10px;">Kolom wajib: <strong>name, date, check_in, check_out</strong>. Format tanggal: YYYY-MM-DD. Format waktu: HH:MM</p>
-        </div>
-        <div style="border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;margin-bottom:20px;" id="drop-zone">
-          <div style="font-size:32px;margin-bottom:10px;">📂</div>
-          <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Drag & drop file CSV di sini, atau</p>
-          <label class="btn btn-primary" style="cursor:pointer;">
-            Pilih File CSV
-            <input type="file" accept=".csv" style="display:none" onchange="handleCSV(event)">
-          </label>
-        </div>
-        <div id="import-preview" style="display:none">
-          <div class="table-wrap">
-            <div class="table-header">
-              <span class="table-title" id="import-count">0 baris ditemukan</span>
-              <button class="btn btn-success btn-sm" onclick="processImport()">✓ Import Semua</button>
-            </div>
-            <table>
-              <thead>
-                <tr><th>Nama</th><th>Tanggal</th><th>Check In</th><th>Check Out</th><th>Preview Poin</th></tr>
-              </thead>
-              <tbody id="import-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab-json" style="display:none">
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:12px;">📋 Format JSON</h3>
-          <div class="code-block">[
-  {
-    <span class="code-key">"name"</span>: <span class="code-str">"Budi Santoso"</span>,
-    <span class="code-key">"date"</span>: <span class="code-str">"2025-06-02"</span>,
-    <span class="code-key">"check_in"</span>: <span class="code-str">"08:00"</span>,
-    <span class="code-key">"check_out"</span>: <span class="code-str">"17:30"</span>
-  }
-]</div>
-        </div>
-        <textarea id="json-input" placeholder='Paste JSON di sini...' style="width:100%;min-height:200px;font-family:JetBrains Mono,monospace;font-size:12px;"></textarea>
-        <div style="margin-top:12px;">
-          <button class="btn btn-primary" onclick="processJSON()">Import dari JSON</button>
-        </div>
-      </div>
-
-      <div id="tab-api" style="display:none">
-        <div class="alert alert-info">
-          🤖 Mode API Otomatis: Sistem akan menarik data dari Supabase secara real-time. Cocok jika fingerprint sudah terintegrasi dengan Supabase via middleware.
-        </div>
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:16px;">Konfigurasi Koneksi Supabase</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>SUPABASE URL</label>
-              <input id="sb-url" placeholder="https://xxx.supabase.co" value="">
-            </div>
-            <div class="form-group">
-              <label>ANON KEY</label>
-              <input id="sb-key" placeholder="eyJhbGci..." type="password">
-            </div>
-            <div class="form-group">
-              <label>NAMA TABEL</label>
-              <input id="sb-table" value="absensi" placeholder="absensi">
-            </div>
-            <div class="form-group">
-              <label>KOLOM TANGGAL</label>
-              <input id="sb-col-date" value="date" placeholder="date">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <button class="btn btn-primary" onclick="testSupabase()">🔌 Test Koneksi</button>
-            <button class="btn btn-success" onclick="fetchFromSupabase()">↓ Tarik Data Sekarang</button>
-          </div>
-          <div id="sb-status" style="margin-top:12px;font-size:13px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PENGATURAN -->
-    <div id="page-pengaturan" class="page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Pengaturan</div>
-          <div class="page-sub">Konfigurasi sistem dan nilai gaji pokok</div>
-        </div>
-      </div>
-      <div class="guide-card" style="max-width:560px">
-        <h3 style="font-size:15px;margin-bottom:20px;">Aturan Poin</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Jam Kerja Standar (jam)</label>
-            <input type="number" id="set-jam" value="9" min="1" max="24">
-          </div>
-          <div class="form-group">
-            <label>Poin Weekday (gaji pokok)</label>
-            <input type="number" id="set-poin-wd" value="1" min="0" step="0.5">
-          </div>
-          <div class="form-group">
-            <label>Poin Weekend (gaji pokok)</label>
-            <input type="number" id="set-poin-we" value="2" min="0" step="0.5">
-          </div>
-          <div class="form-group">
-            <label>Satuan Lembur (jam)</label>
-            <input type="number" id="set-unit-lembur" value="0.5" min="0.25" step="0.25">
-          </div>
-          <div class="form-group">
-            <label>Nilai 1 Poin Pokok (Rp)</label>
-            <input type="number" id="set-val-pokok" value="500000" step="50000">
-          </div>
-          <div class="form-group">
-            <label>Nilai 1 Poin Lembur (Rp)</label>
-            <input type="number" id="set-val-lembur" value="50000" step="10000">
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan Pengaturan</button>
-        <div id="settings-msg" style="margin-top:10px;font-size:13px;color:var(--accent2)"></div>
-      </div>
-    </div>
-
-    <!-- PANDUAN INTEGRASI -->
-    <div id="page-panduan" class="page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Panduan Integrasi Fingerprint + Supabase</div>
-          <div class="page-sub">Langkah lengkap menghubungkan mesin fingerprint ke sistem ini</div>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <button class="tab active" onclick="switchGuideTab('arsitektur')">Arsitektur Sistem</button>
-        <button class="tab" onclick="switchGuideTab('supabase')">Setup Supabase</button>
-        <button class="tab" onclick="switchGuideTab('middleware')">Middleware</button>
-        <button class="tab" onclick="switchGuideTab('sdk')">SDK Python</button>
-      </div>
-
-      <!-- ARSITEKTUR -->
-      <div id="guide-arsitektur">
-        <div class="alert alert-info">
-          💡 Mesin fingerprint biasanya tidak bisa langsung kirim data ke internet. Butuh <strong>middleware (server kecil)</strong> yang membaca data dari mesin, lalu meneruskannya ke Supabase.
-        </div>
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:16px;">Alur Data Keseluruhan</h3>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:20px 0;">
-            <div style="background:var(--tag-bg);border:1px solid var(--border);border-radius:10px;padding:14px 20px;text-align:center;min-width:110px;">
-              <div style="font-size:24px;margin-bottom:6px;">👆</div>
-              <div style="font-size:12px;font-weight:600;">Mesin Fingerprint</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px;">ZKTeco / Suprema<br>via SDK / File / Serial</div>
-            </div>
-            <div style="color:var(--accent);font-size:20px;">→</div>
-            <div style="background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.3);border-radius:10px;padding:14px 20px;text-align:center;min-width:110px;">
-              <div style="font-size:24px;margin-bottom:6px;">🖥️</div>
-              <div style="font-size:12px;font-weight:600;">Middleware</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px;">Python/Node.js<br>di server lokal</div>
-            </div>
-            <div style="color:var(--accent);font-size:20px;">→</div>
-            <div style="background:rgba(62,207,142,0.1);border:1px solid rgba(62,207,142,0.3);border-radius:10px;padding:14px 20px;text-align:center;min-width:110px;">
-              <div style="font-size:24px;margin-bottom:6px;">🟢</div>
-              <div style="font-size:12px;font-weight:600;">Supabase</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px;">PostgreSQL Cloud<br>REST API</div>
-            </div>
-            <div style="color:var(--accent);font-size:20px;">→</div>
-            <div style="background:rgba(124,106,247,0.1);border:1px solid rgba(124,106,247,0.3);border-radius:10px;padding:14px 20px;text-align:center;min-width:110px;">
-              <div style="font-size:24px;margin-bottom:6px;">🌐</div>
-              <div style="font-size:12px;font-weight:600;">Sistem Ini</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px;">HTML Dashboard<br>Baca dari Supabase</div>
-            </div>
-          </div>
-          <h3 style="font-size:14px;margin:16px 0 12px;">Jenis Koneksi Mesin Fingerprint</h3>
-          <div class="guide-step">
-            <div class="step-num">A</div>
-            <div class="step-content">
-              <h4>SDK Resmi (Terbaik) — ZKTeco, Suprema, Nitgen</h4>
-              <p>Mesin menyediakan SDK (library C++ / .NET / Python) yang bisa membaca log presensi secara langsung dari perangkat via jaringan LAN/WiFi. Middleware Python menggunakan SDK ini untuk polling data setiap beberapa menit.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">B</div>
-            <div class="step-content">
-              <h4>Export File Otomatis (MDB/CSV)</h4>
-              <p>Beberapa mesin bisa dikonfigurasi untuk menyimpan log ke file database (Access .mdb) atau CSV ke folder tertentu. Middleware memantau folder ini dengan watchdog dan upload perubahan ke Supabase.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">C</div>
-            <div class="step-content">
-              <h4>PUSH Data via HTTP (Modern)</h4>
-              <p>Mesin fingerprint tipe cloud (ZKTeco CloudX, dsb.) mendukung pengiriman data push ke URL endpoint. Buat endpoint kecil (dengan Express.js atau FastAPI) yang menerima data dan langsung masukkan ke Supabase.</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">D</div>
-            <div class="step-content">
-              <h4>Upload Manual CSV / Excel</h4>
-              <p>Cara paling sederhana: export data dari software bawaan mesin (ZKTime, BioTime, dll.) ke CSV, lalu upload via fitur Import di halaman ini. Cocok jika tidak punya akses teknis ke mesin.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUPABASE SETUP -->
-      <div id="guide-supabase" style="display:none">
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:16px;">1. Buat Project di Supabase</h3>
-          <div class="guide-step">
-            <div class="step-num">1</div>
-            <div class="step-content">
-              <h4>Daftar & Buat Project</h4>
-              <p>Buka <strong>supabase.com</strong> → New Project → isi nama, password database, pilih region terdekat (Singapore).</p>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">2</div>
-            <div class="step-content">
-              <h4>Buat Tabel di SQL Editor</h4>
-              <p>Buka <strong>SQL Editor</strong> di Supabase, jalankan query berikut:</p>
-              <div class="code-block"><span class="code-comment">-- Tabel karyawan</span>
-<span class="code-fn">CREATE TABLE</span> karyawan (
-  id <span class="code-val">UUID</span> PRIMARY KEY DEFAULT gen_random_uuid(),
-  fp_id <span class="code-val">TEXT</span> UNIQUE NOT NULL,   <span class="code-comment">-- ID di mesin fingerprint</span>
-  nama <span class="code-val">TEXT</span> NOT NULL,
-  divisi <span class="code-val">TEXT</span>,
-  jabatan <span class="code-val">TEXT</span>,
-  gaji_pokok <span class="code-val">NUMERIC</span> DEFAULT <span class="code-str">0</span>,
-  aktif <span class="code-val">BOOLEAN</span> DEFAULT true,
-  created_at <span class="code-val">TIMESTAMPTZ</span> DEFAULT now()
-);
-
-<span class="code-comment">-- Tabel absensi</span>
-<span class="code-fn">CREATE TABLE</span> absensi (
-  id <span class="code-val">UUID</span> PRIMARY KEY DEFAULT gen_random_uuid(),
-  fp_id <span class="code-val">TEXT</span> REFERENCES karyawan(fp_id),
-  nama <span class="code-val">TEXT</span>,
-  tanggal <span class="code-val">DATE</span> NOT NULL,
-  check_in <span class="code-val">TIME</span>,
-  check_out <span class="code-val">TIME</span>,
-  total_jam <span class="code-val">NUMERIC</span>,
-  is_weekend <span class="code-val">BOOLEAN</span>,
-  poin_pokok <span class="code-val">NUMERIC</span>,
-  poin_lembur <span class="code-val">NUMERIC</span>,
-  total_poin <span class="code-val">NUMERIC</span>,
-  sumber <span class="code-val">TEXT</span> DEFAULT <span class="code-str">'manual'</span>, <span class="code-comment">-- 'fingerprint' atau 'manual'</span>
-  created_at <span class="code-val">TIMESTAMPTZ</span> DEFAULT now()
-);
-
-<span class="code-comment">-- Index untuk performa</span>
-<span class="code-fn">CREATE INDEX</span> idx_absensi_tanggal ON absensi(tanggal);
-<span class="code-fn">CREATE INDEX</span> idx_absensi_fpid ON absensi(fp_id);</div>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">3</div>
-            <div class="step-content">
-              <h4>Aktifkan Row Level Security (RLS)</h4>
-              <p>Di Supabase → Authentication → Policies. Tambahkan policy untuk membatasi akses. Untuk akses publik dari HTML ini, gunakan <strong>anon key</strong> dan buat policy select:</p>
-              <div class="code-block"><span class="code-fn">ALTER TABLE</span> absensi <span class="code-fn">ENABLE ROW LEVEL SECURITY</span>;
-<span class="code-fn">ALTER TABLE</span> karyawan <span class="code-fn">ENABLE ROW LEVEL SECURITY</span>;
-
-<span class="code-comment">-- Izinkan baca untuk semua (sesuaikan dengan kebutuhan)</span>
-<span class="code-fn">CREATE POLICY</span> "Allow read" ON absensi
-  FOR SELECT USING (true);
-
-<span class="code-comment">-- Izinkan insert dari middleware (service_role key)</span>
-<span class="code-fn">CREATE POLICY</span> "Allow insert" ON absensi
-  FOR INSERT WITH CHECK (true);</div>
-            </div>
-          </div>
-          <div class="guide-step">
-            <div class="step-num">4</div>
-            <div class="step-content">
-              <h4>Ambil API Keys</h4>
-              <p>Buka <strong>Project Settings → API</strong>. Catat:<br>
-              • <strong>Project URL</strong>: https://xxxxx.supabase.co<br>
-              • <strong>anon public key</strong>: untuk frontend (HTML ini)<br>
-              • <strong>service_role key</strong>: untuk middleware (JANGAN expose ke frontend!)</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MIDDLEWARE -->
-      <div id="guide-middleware" style="display:none">
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:6px;">Middleware Python — Baca Fingerprint → Supabase</h3>
-          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Jalankan script ini di komputer yang terhubung ke mesin fingerprint (LAN yang sama).</p>
-
-          <div class="guide-step">
-            <div class="step-num">1</div>
-            <div class="step-content">
-              <h4>Install Dependencies</h4>
-              <div class="code-block">pip install supabase pyzk requests schedule</div>
-            </div>
-          </div>
-
-          <div class="guide-step">
-            <div class="step-num">2</div>
-            <div class="step-content">
-              <h4>Konfigurasi (config.py)</h4>
-              <div class="code-block"><span class="code-comment"># config.py</span>
-SUPABASE_URL = <span class="code-str">"https://xxxxx.supabase.co"</span>
-SUPABASE_SERVICE_KEY = <span class="code-str">"eyJ..."</span>  <span class="code-comment"># service_role key</span>
-
-FINGERPRINT_IP = <span class="code-str">"192.168.1.100"</span>   <span class="code-comment"># IP mesin fingerprint</span>
-FINGERPRINT_PORT = <span class="code-val">4370</span>               <span class="code-comment"># port default ZKTeco</span>
-
-POLL_INTERVAL_MINUTES = <span class="code-val">5</span>             <span class="code-comment"># cek setiap 5 menit</span>
-JAM_KERJA_STANDAR = <span class="code-val">9</span>                 <span class="code-comment"># jam</span>
-NILAI_POKOK_WEEKDAY = <span class="code-val">1</span>
-NILAI_POKOK_WEEKEND = <span class="code-val">2</span>
-UNIT_LEMBUR = <span class="code-val">0.5</span>                   <span class="code-comment"># poin per 0.5 jam</span></div>
-            </div>
-          </div>
-
-          <div class="guide-step">
-            <div class="step-num">3</div>
-            <div class="step-content">
-              <h4>Script Utama (middleware.py)</h4>
-              <div class="code-block"><span class="code-fn">import</span> zk, schedule, time, math
-<span class="code-fn">from</span> datetime <span class="code-fn">import</span> datetime, date
-<span class="code-fn">from</span> supabase <span class="code-fn">import</span> create_client
-<span class="code-fn">from</span> config <span class="code-fn">import</span> *
-<span class="code-fn">from</span> collections <span class="code-fn">import</span> defaultdict
-
-sb = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-
-<span class="code-fn">def</span> <span class="code-key">hitung_poin</span>(total_jam, is_weekend):
-    <span class="code-comment">"""Hitung poin berdasarkan jam kerja"""</span>
-    poin_pokok = NILAI_POKOK_WEEKEND <span class="code-fn">if</span> is_weekend <span class="code-fn">else</span> NILAI_POKOK_WEEKDAY
-    selisih = max(<span class="code-val">0</span>, total_jam - JAM_KERJA_STANDAR)
-    poin_lembur = math.floor(selisih / UNIT_LEMBUR) * UNIT_LEMBUR
-    <span class="code-fn">return</span> round(poin_pokok, <span class="code-val">2</span>), round(poin_lembur, <span class="code-val">2</span>)
-
-<span class="code-fn">def</span> <span class="code-key">sync_fingerprint</span>():
-    conn = zk.ZK(FINGERPRINT_IP, port=FINGERPRINT_PORT, timeout=<span class="code-val">5</span>)
-    zk_instance = conn.connect()
-    attendances = zk_instance.get_attendance()
-    zk_instance.disconnect()
-
-    <span class="code-comment"># Group by (user_id, date)</span>
-    by_day = defaultdict(list)
-    <span class="code-fn">for</span> att <span class="code-fn">in</span> attendances:
-        key = (att.user_id, att.timestamp.date())
-        by_day[key].append(att.timestamp)
-
-    <span class="code-fn">for</span> (fp_id, tgl), times <span class="code-fn">in</span> by_day.items():
-        times.sort()
-        check_in = times[<span class="code-val">0</span>]
-        check_out = times[-<span class="code-val">1</span>]
-        total_menit = (check_out - check_in).total_seconds() / <span class="code-val">3600</span>
-        is_we = tgl.weekday() >= <span class="code-val">5</span>
-        p_pokok, p_lembur = hitung_poin(total_menit, is_we)
-
-        data = {
-            <span class="code-str">"fp_id"</span>: str(fp_id),
-            <span class="code-str">"tanggal"</span>: str(tgl),
-            <span class="code-str">"check_in"</span>: check_in.strftime(<span class="code-str">"%H:%M"</span>),
-            <span class="code-str">"check_out"</span>: check_out.strftime(<span class="code-str">"%H:%M"</span>),
-            <span class="code-str">"total_jam"</span>: round(total_menit, <span class="code-val">2</span>),
-            <span class="code-str">"is_weekend"</span>: is_we,
-            <span class="code-str">"poin_pokok"</span>: p_pokok,
-            <span class="code-str">"poin_lembur"</span>: p_lembur,
-            <span class="code-str">"total_poin"</span>: p_pokok + p_lembur,
-            <span class="code-str">"sumber"</span>: <span class="code-str">"fingerprint"</span>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem HRD & Absensi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { blue: '#1e3a8a', light: '#eff6ff', accent: '#3b82f6' } },
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
+                }
+            }
         }
-        sb.table(<span class="code-str">"absensi"</span>).upsert(
-            data, on_conflict=<span class="code-str">"fp_id,tanggal"</span>).execute()
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased" x-data="hrApp()" x-init="initApp()">
 
-    print(f<span class="code-str">"[{datetime.now()}] Sync selesai: {len(by_day)} record"</span>)
-
-schedule.every(POLL_INTERVAL_MINUTES).minutes.do(sync_fingerprint)
-sync_fingerprint()  <span class="code-comment"># langsung jalankan pertama kali</span>
-<span class="code-fn">while</span> True:
-    schedule.run_pending()
-    time.sleep(<span class="code-val">30</span>)</div>
+    <!-- Toast Notifications -->
+    <div class="fixed top-5 right-5 flex flex-col gap-3 pointer-events-none" style="z-index: 9999;">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div x-show="toast.show" x-transition class="px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 text-white min-w-[300px]" :class="toast.type === 'error' ? 'bg-red-500' : 'bg-green-600'">
+                <span class="font-bold text-sm" x-text="toast.message"></span>
             </div>
-          </div>
+        </template>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div x-show="isLoading" class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-[9000]" x-cloak>
+        <div class="flex flex-col items-center">
+            <svg class="animate-spin h-10 w-10 text-brand-accent mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-gray-600 font-bold animate-pulse">Memproses Data...</p>
         </div>
-      </div>
+    </div>
 
-      <!-- SDK -->
-      <div id="guide-sdk" style="display:none">
-        <div class="alert alert-warn">
-          ⚠️ Script SDK di bawah ini menggunakan library <strong>pyzk</strong> yang kompatibel dengan mesin ZKTeco. Untuk merek lain, gunakan SDK resminya masing-masing.
+    <!-- Header Navigation -->
+    <header class="bg-brand-blue text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-white text-brand-blue rounded font-black flex items-center justify-center text-lg">HR</div>
+                <h1 class="text-xl font-bold tracking-tight">Sistem HRD & Absensi</h1>
+            </div>
+            <nav class="hidden sm:flex items-center gap-2">
+                <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-white/20' : 'hover:bg-white/10'" class="px-4 py-2 rounded-lg font-semibold transition text-sm">Dashboard</button>
+                <button @click="activeTab = 'karyawan'" :class="activeTab === 'karyawan' ? 'bg-white/20' : 'hover:bg-white/10'" class="px-4 py-2 rounded-lg font-semibold transition text-sm">Data Karyawan</button>
+                <button @click="activeTab = 'absensi'" :class="activeTab === 'absensi' ? 'bg-white/20' : 'hover:bg-white/10'" class="px-4 py-2 rounded-lg font-semibold transition text-sm">Log Absensi</button>
+            </nav>
         </div>
-        <div class="guide-card">
-          <h3 style="font-size:15px;margin-bottom:16px;">Merek Fingerprint yang Umum Digunakan</h3>
-          <div class="info-row"><div class="info-label">ZKTeco (paling umum)</div><div><span class="badge badge-green">pyzk library</span></div></div>
-          <div class="info-row"><div class="info-label">Suprema</div><div><span class="badge badge-purple">BioStar2 REST API</span></div></div>
-          <div class="info-row"><div class="info-label">Anviz</div><div><span class="badge badge-warn">Anviz SDK / CrossChex API</span></div></div>
-          <div class="info-row"><div class="info-label">Nitgen</div><div><span class="badge badge-gray">NitgenEsdk .NET</span></div></div>
-          <div class="info-row"><div class="info-label">Hikvision</div><div><span class="badge badge-purple">ISAPI REST (HTTP)</span></div></div>
-          <div class="divider"></div>
-          <h4 style="font-size:13px;margin-bottom:12px;">Script Uji Koneksi ZKTeco</h4>
-          <div class="code-block"><span class="code-fn">from</span> zk <span class="code-fn">import</span> ZK, const
-conn = ZK(<span class="code-str">'192.168.1.100'</span>, port=<span class="code-val">4370</span>, timeout=<span class="code-val">5</span>)
-zk = conn.connect()
-print(<span class="code-str">"Firmware:"</span>, zk.get_firmware_version())
-atts = zk.get_attendance()
-<span class="code-fn">for</span> a <span class="code-fn">in</span> atts[-<span class="code-val">5</span>:]:
-    print(a.user_id, a.timestamp)
-zk.disconnect()</div>
-          <h4 style="font-size:13px;margin:16px 0 12px;">Jalankan sebagai Service (Windows)</h4>
-          <div class="code-block"><span class="code-comment"># Install NSSM (Non-Sucking Service Manager)</span>
-nssm install AbsenMiddleware python.exe C:\absen\middleware.py
-nssm start AbsenMiddleware</div>
-          <h4 style="font-size:13px;margin:16px 0 12px;">Jalankan sebagai Service (Linux/Mac)</h4>
-          <div class="code-block"><span class="code-comment"># /etc/systemd/system/absen.service</span>
-[Unit]
-Description=Absen Fingerprint Middleware
+    </header>
 
-[Service]
-ExecStart=/usr/bin/python3 /opt/absen/middleware.py
-Restart=always
-RestartSec=30
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ================= DASHBOARD TAB ================= -->
+        <div x-show="activeTab === 'dashboard'" x-cloak>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Stat Card 1 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-5">
+                    <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl">👥</div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Karyawan Aktif</p>
+                        <p class="text-3xl font-black text-gray-800 mt-1" x-text="karyawans.filter(k=>k.is_active).length"></p>
+                    </div>
+                </div>
+                <!-- Stat Card 2 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-5">
+                    <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-2xl">⏱️</div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Scan Hari Ini</p>
+                        <p class="text-3xl font-black text-gray-800 mt-1" x-text="absensis.filter(a => a.date === new Date().toISOString().split('T')[0]).length"></p>
+                    </div>
+                </div>
+            </div>
 
-[Install]
-WantedBy=multi-user.target
-
-<span class="code-comment"># Aktifkan:</span>
-systemctl enable absen
-systemctl start absen</div>
+            <!-- LOG AKTIVITAS (Sesuai Request) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-5 border-b border-gray-100 pb-4">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800 flex items-center gap-2">
+                            <span>📑</span> Log Aktivitas Sistem
+                        </h3>
+                        <p class="text-xs text-gray-500 mt-1 font-medium">Riwayat absensi mesin dan perubahan data HRD.</p>
+                    </div>
+                    <button type="button" @click="loadLogs()" class="text-sm font-bold text-brand-accent hover:bg-blue-50 px-3 py-1.5 rounded-lg transition border border-transparent hover:border-blue-200">
+                        🔄 Refresh Log
+                    </button>
+                </div>
+                
+                <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                    <template x-for="log in activityLogs" :key="log.id">
+                        <div class="flex gap-4 items-start p-3 hover:bg-gray-50 rounded-xl transition border border-transparent hover:border-gray-200">
+                            <div class="p-2.5 rounded-xl shrink-0 mt-0.5 shadow-sm border" 
+                                 :class="log.type === 'FINGERPRINT' ? 'bg-blue-50 border-blue-100 text-blue-600' : (log.type === 'HRD_ADD' ? 'bg-green-50 border-green-100 text-green-600' : 'bg-orange-50 border-orange-100 text-orange-600')">
+                                <span class="text-lg leading-none" x-text="log.type === 'FINGERPRINT' ? '👆' : (log.type === 'HRD_ADD' ? '👨‍💼' : '✏️')"></span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-sm text-gray-800 font-bold leading-snug" x-text="log.detail"></div>
+                                <div class="text-[11px] text-gray-400 font-bold mt-1.5 flex items-center gap-1 bg-gray-100 w-max px-2 py-0.5 rounded">
+                                    <span>🕒</span> <span x-text="formatDateTime(log.created_at)"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="activityLogs.length === 0">
+                        <div class="text-center text-gray-500 font-bold text-sm py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                            Belum ada aktivitas sistem yang terekam.
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- ================= DATA KARYAWAN TAB ================= -->
+        <div x-show="activeTab === 'karyawan'" x-cloak>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-extrabold text-gray-800">Master Data Karyawan</h2>
+                    <button @click="openFormKaryawan()" class="bg-brand-blue text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-900 transition shadow-sm text-sm">
+                        + Tambah Karyawan
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="p-4 w-20 text-center">ID Mesin</th>
+                                <th class="p-4">Nama Lengkap</th>
+                                <th class="p-4">Jabatan</th>
+                                <th class="p-4">Status BPJS</th>
+                                <th class="p-4 text-center">Status</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template x-for="k in karyawans" :key="k.id">
+                                <tr class="hover:bg-blue-50/50 transition">
+                                    <td class="p-4 text-center font-mono font-bold text-gray-500" x-text="k.id"></td>
+                                    <td class="p-4 font-extrabold text-gray-800" x-text="k.name"></td>
+                                    <td class="p-4 text-gray-600 font-medium" x-text="k.jabatan || '-'"></td>
+                                    <td class="p-4 text-gray-600 font-medium" x-text="k.status_bpjs || '-'"></td>
+                                    <td class="p-4 text-center">
+                                        <span class="px-3 py-1 rounded-md text-[10px] font-black tracking-wide uppercase shadow-sm border"
+                                              :class="k.is_active ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'"
+                                              x-text="k.is_active ? 'AKTIF' : 'NON-AKTIF'"></span>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button @click="openFormKaryawan(k)" class="p-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg font-bold transition text-xs border border-amber-200 shadow-sm">✏️ Edit</button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-if="karyawans.length === 0">
+                                <tr><td colspan="6" class="p-8 text-center text-gray-400 font-bold">Belum ada data karyawan.</td></tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= LOG ABSENSI TAB ================= -->
+        <div x-show="activeTab === 'absensi'" x-cloak>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-gray-100 pb-5">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-gray-800">Log Absensi Harian</h2>
+                        <p class="text-xs text-gray-500 font-medium mt-1">Data masuk mesin (Insert Only Logika Baru)</p>
+                    </div>
+                    
+                    <!-- SIMULASI MESIN FINGERSPOT -->
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex gap-2 items-center">
+                        <select x-model="sim_emp_id" class="border p-2 rounded-lg text-sm outline-none font-medium bg-white">
+                            <option value="">-- Pilih Karyawan --</option>
+                            <template x-for="k in karyawans" :key="k.id">
+                                <option :value="k.id" x-text="k.id + ' - ' + k.name"></option>
+                            </template>
+                        </select>
+                        <button @click="simulateFingerprintScan()" class="bg-brand-accent text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition flex items-center gap-2">
+                            👆 Scan Dummy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="p-4 w-12 text-center">No</th>
+                                <th class="p-4">Tanggal</th>
+                                <th class="p-4">Karyawan (ID - Nama)</th>
+                                <th class="p-4">Jam Scan (Masuk)</th>
+                                <th class="p-4">Tipe Hari</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template x-for="(a, idx) in absensis" :key="idx">
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="p-4 text-center font-bold text-gray-400" x-text="idx + 1"></td>
+                                    <td class="p-4 font-bold text-gray-700" x-text="a.date"></td>
+                                    <td class="p-4">
+                                        <span class="font-mono text-xs bg-gray-200 px-1.5 py-0.5 rounded text-gray-700 mr-1" x-text="a.emp_id"></span>
+                                        <span class="font-extrabold text-gray-800" x-text="getKaryawanName(a.emp_id)"></span>
+                                    </td>
+                                    <td class="p-4">
+                                        <span class="bg-green-100 text-green-700 border border-green-200 px-2 py-1 rounded text-xs font-black shadow-sm inline-flex items-center gap-1">
+                                            <span>⏱️</span> <span x-text="a.clock_in"></span>
+                                        </span>
+                                    </td>
+                                    <td class="p-4">
+                                        <span class="text-xs font-bold text-gray-500" x-text="a.is_weekend ? 'Akhir Pekan' : a.tipe_hari"></span>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-if="absensis.length === 0">
+                                <tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">Belum ada data scan absensi.</td></tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= MODAL FORM KARYAWAN ================= -->
+    <div x-show="modals.karyawan" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="modals.karyawan = false"></div>
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl relative z-10 flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-xl font-extrabold text-gray-800" x-text="formKaryawan.old_id ? 'Edit Karyawan' : 'Tambah Karyawan Baru'"></h3>
+                <button @click="modals.karyawan = false" class="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition">✕</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <!-- FORM ID SESUAI REQUEST (EDITABLE) -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">ID Karyawan (ID Mesin Fingerspot) <span class="text-red-500">*</span></label>
+                    <input type="number" x-model="formKaryawan.id" class="w-full border border-gray-300 p-3 rounded-xl outline-none transition focus:bg-white focus:ring-2 focus:border-brand-accent bg-gray-50 font-mono text-lg font-bold" placeholder="Contoh: 101">
+                    <p class="text-[11px] font-bold text-orange-600 mt-1 flex items-center gap-1 bg-orange-50 p-1.5 rounded-lg border border-orange-100">
+                        <span>⚠️</span> Wajib sama persis dengan ID user yang terdaftar di mesin fingerprint!
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" x-model="formKaryawan.name" class="w-full border border-gray-300 p-3 rounded-xl outline-none transition focus:bg-white focus:ring-2 focus:border-brand-accent bg-gray-50 uppercase">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Jabatan</label>
+                        <input type="text" x-model="formKaryawan.jabatan" class="w-full border border-gray-300 p-3 rounded-xl outline-none transition focus:bg-white focus:ring-2 focus:border-brand-accent bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Status BPJS</label>
+                        <select x-model="formKaryawan.status_bpjs" class="w-full border border-gray-300 p-3 rounded-xl outline-none transition focus:bg-white focus:ring-2 focus:border-brand-accent bg-gray-50">
+                            <option value="">Pilih Status</option>
+                            <option value="Terdaftar">Terdaftar</option>
+                            <option value="Belum Terdaftar">Belum Terdaftar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Gaji Pokok / Poin</label>
+                        <input type="number" x-model="formKaryawan.gaji_per_poin_pokok" class="w-full border border-gray-300 p-3 rounded-xl outline-none transition focus:bg-white focus:ring-2 focus:border-brand-accent bg-gray-50" placeholder="Rp">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Gaji Ekstra / Poin</label>
+                        <input type="number" x-model="formKaryawan.gaji_per_poin_ekstra" class="w-full border border-gray-300 p-3 rounded-xl outline-none transition focus:bg-white focus:ring-2 focus:border-brand-accent bg-gray-50" placeholder="Rp">
+                    </div>
+                </div>
+
+                <div class="mt-2 pt-4 border-t border-gray-100 flex items-center gap-3">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="formKaryawan.is_active" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-accent"></div>
+                        <span class="ml-3 text-sm font-bold text-gray-700">Status Karyawan Aktif</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl">
+                <button @click="modals.karyawan = false" class="px-5 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition shadow-sm">Batal</button>
+                <button @click="saveKaryawan()" class="px-6 py-2.5 bg-brand-blue text-white rounded-xl font-bold hover:bg-blue-900 transition shadow-md">Simpan Data</button>
+            </div>
+        </div>
     </div>
 
-  </main>
-</div>
+    <!-- SCRIPT ALPINE & SUPABASE -->
+    <script>
+        /**
+         * ⚠️ PENTING: Ganti URL dan KEY di bawah dengan project Supabase HRD Anda!
+         * Pastikan tabel activity_logs sudah dibuat dengan struktur: id (int8), type (text), detail (text), created_at (timestamp)
+         * Pastikan Foreign Key absensi(emp_id) -> karyawan(id) disetting ON UPDATE CASCADE agar ID bisa diedit.
+         */
+        const SUPABASE_URL = 'https://kepwayqnpludozbonvbe.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlcHdheXFucGx1ZG96Ym9udmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMzE4NTksImV4cCI6MjA5MTYwNzg1OX0.klCq5PCxFcZYGEp2Y0ckMX9aZLRt__KNhGXSRdQX3K4';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<!-- MODALS -->
-<div id="modal-absensi" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-absensi')">
-  <div class="modal">
-    <div class="modal-title">Tambah Absensi Manual</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>NAMA KARYAWAN</label>
-        <input id="m-nama" placeholder="Nama lengkap">
-      </div>
-      <div class="form-group">
-        <label>TANGGAL</label>
-        <input type="date" id="m-tanggal">
-      </div>
-      <div class="form-group">
-        <label>CHECK IN</label>
-        <input type="time" id="m-checkin">
-      </div>
-      <div class="form-group">
-        <label>CHECK OUT</label>
-        <input type="time" id="m-checkout">
-      </div>
-    </div>
-    <div id="preview-poin" style="display:none;margin-top:8px;padding:14px;background:var(--tag-bg);border-radius:var(--radius-sm);">
-      <div class="formula-title">Preview Poin</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
-        <span class="pts-chip pts-base" id="prev-pokok">—</span>
-        <span class="pts-chip pts-extra" id="prev-lembur">—</span>
-        <span class="pts-chip pts-total" id="prev-total">—</span>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-absensi')">Batal</button>
-      <button class="btn btn-primary" onclick="saveAbsensi()">Simpan</button>
-    </div>
-  </div>
-</div>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('hrApp', () => ({
+                isLoading: false,
+                activeTab: 'dashboard',
+                toasts: [], toastCount: 0,
+                karyawans: [],
+                absensis: [],
+                activityLogs: [],
+                sim_emp_id: '', // untuk dropdown simulasi
+                
+                modals: { karyawan: false },
+                formKaryawan: { old_id: null, id: '', name: '', jabatan: '', status_bpjs: '', gaji_per_poin_pokok: '', gaji_per_poin_ekstra: '', is_active: true },
 
-<div id="modal-karyawan" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-karyawan')">
-  <div class="modal">
-    <div class="modal-title">Tambah Karyawan</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>ID FINGERPRINT</label>
-        <input id="k-fpid" placeholder="misal: 001">
-      </div>
-      <div class="form-group">
-        <label>NAMA LENGKAP</label>
-        <input id="k-nama" placeholder="Nama">
-      </div>
-      <div class="form-group">
-        <label>DIVISI</label>
-        <input id="k-divisi" placeholder="IT, HRD, dll">
-      </div>
-      <div class="form-group">
-        <label>JABATAN</label>
-        <input id="k-jabatan" placeholder="Staff, Manager, dll">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-karyawan')">Batal</button>
-      <button class="btn btn-primary" onclick="saveKaryawan()">Simpan</button>
-    </div>
-  </div>
-</div>
+                showToast(message, type = 'success') { 
+                    const id = this.toastCount++; 
+                    this.toasts.push({ id, message, type, show: true }); 
+                    setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000); 
+                },
+                formatDateTime(ts) { 
+                    if(!ts) return '-'; const d = new Date(ts); 
+                    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; 
+                },
+                getKaryawanName(id) {
+                    const k = this.karyawans.find(x => String(x.id) === String(id));
+                    return k ? k.name : 'Unknown ('+id+')';
+                },
 
-<script>
-// ============ STATE ============
-let absensiData = [];
-let karyawanData = [];
-let settings = {
-  jam: 9, poinWD: 1, poinWE: 2, unitLembur: 0.5,
-  valPokok: 500000, valLembur: 50000
-};
+                async initApp() {
+                    this.isLoading = true;
+                    await Promise.all([this.loadKaryawan(), this.loadAbsensi(), this.loadLogs()]);
+                    this.isLoading = false;
+                },
 
-// ============ SAMPLE DATA ============
-function loadSampleData() {
-  karyawanData = [
-    { fpId: '001', nama: 'Budi Santoso', divisi: 'IT', jabatan: 'Senior Dev' },
-    { fpId: '002', nama: 'Siti Rahayu', divisi: 'HRD', jabatan: 'HR Manager' },
-    { fpId: '003', nama: 'Ahmad Fauzi', divisi: 'Finance', jabatan: 'Staff' },
-    { fpId: '004', nama: 'Dewi Lestari', divisi: 'Marketing', jabatan: 'Supervisor' },
-  ];
+                async loadKaryawan() {
+                    const { data, error } = await supabaseClient.from('karyawan').select('*').order('name');
+                    if (!error) this.karyawans = data || [];
+                },
 
-  const rawData = [
-    { nama: 'Budi Santoso', tanggal: '2025-06-02', in: '08:00', out: '17:30' },
-    { nama: 'Budi Santoso', tanggal: '2025-06-03', in: '08:15', out: '20:00' },
-    { nama: 'Budi Santoso', tanggal: '2025-06-07', in: '09:00', out: '14:00' },
-    { nama: 'Siti Rahayu', tanggal: '2025-06-02', in: '07:45', out: '17:00' },
-    { nama: 'Siti Rahayu', tanggal: '2025-06-04', in: '08:00', out: '19:30' },
-    { nama: 'Siti Rahayu', tanggal: '2025-06-08', in: '10:00', out: '21:00' },
-    { nama: 'Ahmad Fauzi', tanggal: '2025-06-02', in: '09:00', out: '18:30' },
-    { nama: 'Ahmad Fauzi', tanggal: '2025-06-05', in: '08:00', out: '17:00' },
-    { nama: 'Dewi Lestari', tanggal: '2025-06-03', in: '08:00', out: '21:00' },
-    { nama: 'Dewi Lestari', tanggal: '2025-06-07', in: '08:00', out: '17:00' },
-  ];
+                async loadAbsensi() {
+                    const { data, error } = await supabaseClient.from('absensi').select('*').order('date', {ascending: false}).order('clock_in', {ascending: false}).limit(100);
+                    if (!error) this.absensis = data || [];
+                },
 
-  absensiData = rawData.map(r => buildRecord(r.nama, r.tanggal, r.in, r.out));
-}
+                async loadLogs() {
+                    // Load activity log (Max 50 agar enteng)
+                    const { data, error } = await supabaseClient.from('activity_logs').select('*').order('created_at', {ascending: false}).limit(50);
+                    if (!error) this.activityLogs = data || [];
+                },
 
-// ============ POIN CALC ============
-function hitungPoin(totalJam, isWeekend) {
-  const poinPokok = isWeekend ? settings.poinWE : settings.poinWD;
-  const selisih = Math.max(0, totalJam - settings.jam);
-  const unitCount = Math.floor(selisih / settings.unitLembur);
-  const poinLembur = unitCount * settings.unitLembur;
-  return { poinPokok, poinLembur, total: poinPokok + poinLembur };
-}
+                async writeLog(type, detail) {
+                    try {
+                        const payload = { type: type, detail: detail, created_at: new Date().toISOString() };
+                        await supabaseClient.from('activity_logs').insert([payload]);
+                        // prepend to UI array without reloading
+                        this.activityLogs.unshift(payload);
+                    } catch (err) { console.error("Gagal tulis log:", err); }
+                },
 
-function buildRecord(nama, tanggal, checkIn, checkOut) {
-  const [ih, im] = checkIn.split(':').map(Number);
-  const [oh, om] = checkOut.split(':').map(Number);
-  const totalJam = (oh * 60 + om - (ih * 60 + im)) / 60;
-  const d = new Date(tanggal);
-  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-  const { poinPokok, poinLembur, total } = hitungPoin(totalJam, isWeekend);
-  return { nama, tanggal, checkIn, checkOut, totalJam, isWeekend, poinPokok, poinLembur, total };
-}
+                openFormKaryawan(k = null) {
+                    if (k) {
+                        this.formKaryawan = { 
+                            old_id: k.id, // Simpan ID lama untuk klausa WHERE UPDATE
+                            id: k.id, 
+                            name: k.name, 
+                            jabatan: k.jabatan, 
+                            status_bpjs: k.status_bpjs, 
+                            gaji_per_poin_pokok: k.gaji_per_poin_pokok, 
+                            gaji_per_poin_ekstra: k.gaji_per_poin_ekstra, 
+                            is_active: k.is_active 
+                        };
+                    } else {
+                        this.formKaryawan = { old_id: null, id: '', name: '', jabatan: '', status_bpjs: '', gaji_per_poin_pokok: '', gaji_per_poin_ekstra: '', is_active: true };
+                    }
+                    this.modals.karyawan = true;
+                },
 
-// ============ RENDER FUNCTIONS ============
-function dayLabel(isWeekend) {
-  return isWeekend
-    ? '<span class="badge badge-warn">Weekend</span>'
-    : '<span class="badge badge-green">Weekday</span>';
-}
+                async saveKaryawan() {
+                    if (!this.formKaryawan.id || !this.formKaryawan.name) {
+                        this.showToast("ID Mesin & Nama Wajib Diisi!", "error");
+                        return;
+                    }
 
-function avatarHtml(nama) {
-  const initials = nama.split(' ').slice(0,2).map(w => w[0]).join('');
-  const colors = ['#7c6af7','#3de8b0','#f7a23d','#f76a6a','#7bcff7'];
-  const c = colors[nama.charCodeAt(0) % colors.length];
-  return `<div class="avatar" style="background:${c}22;color:${c}">${initials}</div>`;
-}
+                    this.isLoading = true;
+                    try {
+                        const payload = {
+                            id: parseInt(this.formKaryawan.id),
+                            name: this.formKaryawan.name.toUpperCase(),
+                            jabatan: this.formKaryawan.jabatan,
+                            status_bpjs: this.formKaryawan.status_bpjs,
+                            gaji_per_poin_pokok: this.formKaryawan.gaji_per_poin_pokok ? parseInt(this.formKaryawan.gaji_per_poin_pokok) : 0,
+                            gaji_per_poin_ekstra: this.formKaryawan.gaji_per_poin_ekstra ? parseInt(this.formKaryawan.gaji_per_poin_ekstra) : 0,
+                            is_active: this.formKaryawan.is_active
+                        };
 
-function renderDashboard() {
-  const tbody = document.getElementById('table-dashboard');
-  const empty = document.getElementById('empty-dashboard');
-  const slice = absensiData.slice(0, 8);
-  if (!slice.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = slice.map(r => `
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:10px">${avatarHtml(r.nama)}<span class="td-name">${r.nama}</span></div></td>
-      <td class="td-mono">${r.tanggal}</td>
-      <td class="td-mono">${r.checkIn}</td>
-      <td class="td-mono">${r.checkOut}</td>
-      <td><span class="badge badge-purple">${r.totalJam.toFixed(1)} jam</span></td>
-      <td>${dayLabel(r.isWeekend)}</td>
-      <td><span class="pts-chip pts-base">⬡ ${r.poinPokok}</span></td>
-      <td><span class="pts-chip pts-extra">${r.poinLembur > 0 ? '+' + r.poinLembur : '—'}</span></td>
-      <td><span class="pts-chip pts-total">★ ${r.total}</span></td>
-    </tr>
-  `).join('');
+                        if (this.formKaryawan.old_id) {
+                            // MODE EDIT
+                            const { error } = await supabaseClient.from('karyawan').update(payload).eq('id', this.formKaryawan.old_id);
+                            if(error) throw error;
+                            
+                            await this.writeLog('HRD_EDIT', `Mengubah profil Karyawan: ${payload.name} (ID: ${payload.id})`);
+                            this.showToast("Data diperbarui!");
+                        } else {
+                            // MODE TAMBAH BARU
+                            payload.created_at = new Date().toISOString().split('T')[0];
+                            const { error } = await supabaseClient.from('karyawan').insert([payload]);
+                            if(error) throw error;
+                            
+                            await this.writeLog('HRD_ADD', `Karyawan Baru ditambahkan: ${payload.name} dengan ID Mesin ${payload.id}`);
+                            this.showToast("Karyawan ditambahkan!");
+                        }
 
-  document.getElementById('stat-hadir').textContent = absensiData.length;
-  document.getElementById('stat-poin-pokok').textContent = absensiData.reduce((s,r) => s + r.poinPokok, 0).toFixed(1);
-  document.getElementById('stat-poin-lembur').textContent = absensiData.reduce((s,r) => s + r.poinLembur, 0).toFixed(1);
-  document.getElementById('stat-karyawan').textContent = karyawanData.length;
-}
+                        this.modals.karyawan = false;
+                        await this.loadKaryawan();
+                    } catch (error) {
+                        console.error("Save error:", error);
+                        if(error.code === '23505') {
+                            this.showToast("ID Mesin tersebut sudah dipakai karyawan lain!", "error");
+                        } else {
+                            this.showToast("Gagal menyimpan data", "error");
+                        }
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
 
-let filteredAbsensi = [];
-function filterAbsensi() {
-  const q = (document.getElementById('search-absensi').value || '').toLowerCase();
-  const bulan = document.getElementById('filter-bulan').value;
-  const hari = document.getElementById('filter-hari').value;
-  filteredAbsensi = absensiData.filter(r => {
-    if (q && !r.nama.toLowerCase().includes(q)) return false;
-    if (bulan && !r.tanggal.startsWith(bulan)) return false;
-    if (hari === 'weekday' && r.isWeekend) return false;
-    if (hari === 'weekend' && !r.isWeekend) return false;
-    return true;
-  });
-  renderAbsensiTable();
-}
+                // FITUR UTAMA REQUEST LOGIKA BARU: Data tidak diupdate, selalu INSERT baru tiap kali mesin kirim data scan.
+                async simulateFingerprintScan() {
+                    if(!this.sim_emp_id) {
+                        this.showToast("Pilih karyawan dulu", "error"); return;
+                    }
 
-function renderAbsensiTable() {
-  const tbody = document.getElementById('table-absensi');
-  const empty = document.getElementById('empty-absensi');
-  if (!filteredAbsensi.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = filteredAbsensi.map((r, i) => `
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:10px">${avatarHtml(r.nama)}<span class="td-name">${r.nama}</span></div></td>
-      <td class="td-mono">${r.tanggal}</td>
-      <td class="td-mono">${r.checkIn}</td>
-      <td class="td-mono">${r.checkOut}</td>
-      <td><span class="badge badge-purple">${r.totalJam.toFixed(1)} jam</span></td>
-      <td>${dayLabel(r.isWeekend)}</td>
-      <td><span class="pts-chip pts-base">⬡ ${r.poinPokok}</span></td>
-      <td><span class="pts-chip pts-extra">${r.poinLembur > 0 ? '+' + r.poinLembur : '—'}</span></td>
-      <td><span class="pts-chip pts-total">★ ${r.total}</span></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteAbsensi(${absensiData.indexOf(r)})">✕</button></td>
-    </tr>
-  `).join('');
-}
+                    this.isLoading = true;
+                    try {
+                        const now = new Date();
+                        const timeString = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+                        const dateString = now.toISOString().split('T')[0];
+                        const isWeekend = [0, 6].includes(now.getDay()); // 0=Minggu, 6=Sabtu
 
-function deleteAbsensi(idx) {
-  absensiData.splice(idx, 1);
-  filterAbsensi();
-  renderDashboard();
-  renderPoin();
-}
+                        const payload = {
+                            emp_id: parseInt(this.sim_emp_id),
+                            date: dateString,
+                            clock_in: timeString,
+                            clock_out: null, // Dibiarkan null karena selalu membuat baris baru
+                            is_weekend: isWeekend,
+                            tipe_hari: 'Normal'
+                        };
 
-function renderKaryawan() {
-  const tbody = document.getElementById('table-karyawan');
-  tbody.innerHTML = karyawanData.map(k => {
-    const poin = absensiData.filter(r => r.nama === k.nama).reduce((s, r) => s + r.total, 0);
-    return `<tr>
-      <td class="td-mono">${k.fpId}</td>
-      <td><div style="display:flex;align-items:center;gap:10px">${avatarHtml(k.nama)}<span class="td-name">${k.nama}</span></div></td>
-      <td>${k.divisi}</td>
-      <td>${k.jabatan}</td>
-      <td><span class="badge badge-green">Aktif</span></td>
-      <td><span class="pts-chip pts-total">★ ${poin.toFixed(1)}</span></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteKaryawan('${k.fpId}')">✕</button></td>
-    </tr>`;
-  }).join('');
-}
+                        // INSERT BUKAN UPDATE
+                        const { error } = await supabaseClient.from('absensi').insert([payload]);
+                        if(error) throw error;
 
-function deleteKaryawan(fpId) {
-  karyawanData = karyawanData.filter(k => k.fpId !== fpId);
-  renderKaryawan();
-}
-
-function renderPoin() {
-  const names = [...new Set(absensiData.map(r => r.nama))];
-  const tbody = document.getElementById('table-poin');
-  tbody.innerHTML = names.map(nama => {
-    const rows = absensiData.filter(r => r.nama === nama);
-    const wd = rows.filter(r => !r.isWeekend).length;
-    const we = rows.filter(r => r.isWeekend).length;
-    const tp = rows.reduce((s,r) => s + r.poinPokok, 0);
-    const tl = rows.reduce((s,r) => s + r.poinLembur, 0);
-    const tot = tp + tl;
-    const gaji = (tp * settings.valPokok + tl * settings.valLembur).toLocaleString('id-ID');
-    return `<tr>
-      <td><div style="display:flex;align-items:center;gap:10px">${avatarHtml(nama)}<span class="td-name">${nama}</span></div></td>
-      <td><span class="badge badge-green">${wd} hari</span></td>
-      <td><span class="badge badge-warn">${we} hari</span></td>
-      <td><span class="pts-chip pts-base">⬡ ${tp.toFixed(1)}</span></td>
-      <td><span class="pts-chip pts-extra">+ ${tl.toFixed(1)}</span></td>
-      <td><span class="pts-chip pts-total" style="font-size:13px">★ ${tot.toFixed(1)}</span></td>
-      <td style="font-weight:600;color:var(--accent2)">Rp ${gaji}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ============ IMPORT CSV ============
-let importRows = [];
-function handleCSV(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const lines = ev.target.result.trim().split('\n');
-    const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-    importRows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const vals = lines[i].split(',').map(v => v.trim());
-      const row = {};
-      header.forEach((h, idx) => row[h] = vals[idx] || '');
-      if (row.name && row.date && row.check_in && row.check_out) {
-        importRows.push(row);
-      }
-    }
-    showImportPreview();
-  };
-  reader.readAsText(file);
-}
-
-function showImportPreview() {
-  document.getElementById('import-count').textContent = `${importRows.length} baris ditemukan`;
-  const tbody = document.getElementById('import-tbody');
-  tbody.innerHTML = importRows.map(r => {
-    const rec = buildRecord(r.name, r.date, r.check_in, r.check_out);
-    return `<tr>
-      <td class="td-name">${r.name}</td>
-      <td class="td-mono">${r.date}</td>
-      <td class="td-mono">${r.check_in}</td>
-      <td class="td-mono">${r.check_out}</td>
-      <td>
-        <span class="pts-chip pts-base">⬡ ${rec.poinPokok}</span>
-        <span class="pts-chip pts-extra">+ ${rec.poinLembur}</span>
-        <span class="pts-chip pts-total">★ ${rec.total}</span>
-      </td>
-    </tr>`;
-  }).join('');
-  document.getElementById('import-preview').style.display = '';
-}
-
-function processImport() {
-  const newRows = importRows.map(r => buildRecord(r.name, r.date, r.check_in, r.check_out));
-  absensiData = [...absensiData, ...newRows];
-  filteredAbsensi = [...absensiData];
-  renderDashboard();
-  renderAbsensiTable();
-  renderPoin();
-  document.getElementById('import-preview').style.display = 'none';
-  importRows = [];
-  alert(`✅ ${newRows.length} data berhasil diimport!`);
-}
-
-function processJSON() {
-  try {
-    const arr = JSON.parse(document.getElementById('json-input').value);
-    importRows = arr.map(r => ({ name: r.name, date: r.date, check_in: r.check_in, check_out: r.check_out }));
-    showImportPreview();
-    document.getElementById('import-tbody').closest('.table-wrap').style.display = '';
-  } catch { alert('JSON tidak valid.'); }
-}
-
-// ============ SUPABASE DEMO ============
-async function testSupabase() {
-  const url = document.getElementById('sb-url').value;
-  const key = document.getElementById('sb-key').value;
-  const status = document.getElementById('sb-status');
-  if (!url || !key) { status.innerHTML = '<span style="color:var(--danger)">⚠️ Isi URL dan Key dulu.</span>'; return; }
-  status.innerHTML = '⏳ Menguji koneksi...';
-  try {
-    const r = await fetch(`${url}/rest/v1/`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
-    status.innerHTML = r.ok
-      ? '<span style="color:var(--accent2)">✅ Koneksi berhasil! Supabase aktif.</span>'
-      : '<span style="color:var(--danger)">❌ Gagal: ' + r.status + '</span>';
-  } catch { status.innerHTML = '<span style="color:var(--danger)">❌ Tidak bisa terhubung. Cek URL & CORS.</span>'; }
-}
-
-async function fetchFromSupabase() {
-  const url = document.getElementById('sb-url').value;
-  const key = document.getElementById('sb-key').value;
-  const tbl = document.getElementById('sb-table').value || 'absensi';
-  const status = document.getElementById('sb-status');
-  status.innerHTML = '⏳ Mengambil data...';
-  try {
-    const r = await fetch(`${url}/rest/v1/${tbl}?select=*&order=tanggal.desc&limit=100`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` }
-    });
-    const data = await r.json();
-    if (!Array.isArray(data)) { status.innerHTML = '<span style="color:var(--danger)">❌ ' + JSON.stringify(data) + '</span>'; return; }
-    const mapped = data.map(d => buildRecord(d.nama || d.name, d.tanggal || d.date, d.check_in, d.check_out));
-    absensiData = [...absensiData, ...mapped];
-    filteredAbsensi = [...absensiData];
-    renderDashboard(); renderAbsensiTable(); renderPoin();
-    status.innerHTML = `<span style="color:var(--accent2)">✅ ${mapped.length} record berhasil dimuat dari Supabase!</span>`;
-  } catch (e) { status.innerHTML = '<span style="color:var(--danger)">❌ Error: ' + e.message + '</span>'; }
-}
-
-// ============ MODALS ============
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-  if (id === 'modal-absensi') {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('m-tanggal').value = today;
-  }
-}
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function saveAbsensi() {
-  const nama = document.getElementById('m-nama').value;
-  const tanggal = document.getElementById('m-tanggal').value;
-  const ci = document.getElementById('m-checkin').value;
-  const co = document.getElementById('m-checkout').value;
-  if (!nama || !tanggal || !ci || !co) { alert('Semua field wajib diisi.'); return; }
-  absensiData.unshift(buildRecord(nama, tanggal, ci, co));
-  filteredAbsensi = [...absensiData];
-  renderDashboard(); renderAbsensiTable(); renderPoin();
-  closeModal('modal-absensi');
-  document.getElementById('m-nama').value = '';
-  document.getElementById('m-checkin').value = '';
-  document.getElementById('m-checkout').value = '';
-}
-
-function saveKaryawan() {
-  const k = {
-    fpId: document.getElementById('k-fpid').value,
-    nama: document.getElementById('k-nama').value,
-    divisi: document.getElementById('k-divisi').value,
-    jabatan: document.getElementById('k-jabatan').value,
-  };
-  if (!k.fpId || !k.nama) { alert('ID Fingerprint dan Nama wajib diisi.'); return; }
-  karyawanData.push(k);
-  renderKaryawan();
-  closeModal('modal-karyawan');
-}
-
-// Preview poin saat input modal
-['m-checkin','m-checkout','m-tanggal'].forEach(id => {
-  document.getElementById(id)?.addEventListener('change', updatePreview);
-});
-function updatePreview() {
-  const t = document.getElementById('m-tanggal').value;
-  const ci = document.getElementById('m-checkin').value;
-  const co = document.getElementById('m-checkout').value;
-  if (!t || !ci || !co) { document.getElementById('preview-poin').style.display = 'none'; return; }
-  const rec = buildRecord('_', t, ci, co);
-  document.getElementById('preview-poin').style.display = '';
-  document.getElementById('prev-pokok').textContent = `⬡ Pokok: ${rec.poinPokok}`;
-  document.getElementById('prev-lembur').textContent = `+ Lembur: ${rec.poinLembur}`;
-  document.getElementById('prev-total').textContent = `★ Total: ${rec.total}`;
-}
-
-// ============ SETTINGS ============
-function saveSettings() {
-  settings.jam = parseFloat(document.getElementById('set-jam').value) || 9;
-  settings.poinWD = parseFloat(document.getElementById('set-poin-wd').value) || 1;
-  settings.poinWE = parseFloat(document.getElementById('set-poin-we').value) || 2;
-  settings.unitLembur = parseFloat(document.getElementById('set-unit-lembur').value) || 0.5;
-  settings.valPokok = parseFloat(document.getElementById('set-val-pokok').value) || 500000;
-  settings.valLembur = parseFloat(document.getElementById('set-val-lembur').value) || 50000;
-  absensiData = absensiData.map(r => buildRecord(r.nama, r.tanggal, r.checkIn, r.checkOut));
-  filteredAbsensi = [...absensiData];
-  renderDashboard(); renderAbsensiTable(); renderPoin();
-  document.getElementById('settings-msg').textContent = '✅ Pengaturan disimpan dan poin dihitung ulang.';
-  setTimeout(() => document.getElementById('settings-msg').textContent = '', 3000);
-}
-
-// ============ EXPORT CSV ============
-function exportCSV() {
-  const names = [...new Set(absensiData.map(r => r.nama))];
-  const rows = [['Nama','Hari Weekday','Hari Weekend','Poin Pokok','Poin Lembur','Total Poin','Estimasi Gaji']];
-  names.forEach(nama => {
-    const data = absensiData.filter(r => r.nama === nama);
-    const wd = data.filter(r => !r.isWeekend).length;
-    const we = data.filter(r => r.isWeekend).length;
-    const tp = data.reduce((s,r) => s+r.poinPokok,0);
-    const tl = data.reduce((s,r) => s+r.poinLembur,0);
-    const tot = tp+tl;
-    const gaji = tp*settings.valPokok + tl*settings.valLembur;
-    rows.push([nama,wd,we,tp,tl,tot,gaji]);
-  });
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'rekap-poin.csv';
-  a.click();
-}
-
-// ============ NAV ============
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (id === 'absensi') { filteredAbsensi = [...absensiData]; renderAbsensiTable(); }
-  if (id === 'karyawan') renderKaryawan();
-  if (id === 'poin') renderPoin();
-  if (id === 'dashboard') renderDashboard();
-}
-
-// ============ TABS ============
-function switchTab(t) {
-  ['csv','json','api'].forEach(x => document.getElementById('tab-'+x).style.display = x===t?'':'none');
-  document.querySelectorAll('#page-import .tab').forEach((b,i) => {
-    b.classList.toggle('active', ['csv','json','api'][i]===t);
-  });
-}
-
-function switchGuideTab(t) {
-  ['arsitektur','supabase','middleware','sdk'].forEach(x => document.getElementById('guide-'+x).style.display = x===t?'':'none');
-  document.querySelectorAll('#page-panduan .tab').forEach((b,i) => {
-    b.classList.toggle('active', ['arsitektur','supabase','middleware','sdk'][i]===t);
-  });
-}
-
-// ============ INIT ============
-loadSampleData();
-filteredAbsensi = [...absensiData];
-renderDashboard();
-</script>
+                        const empName = this.getKaryawanName(this.sim_emp_id);
+                        await this.writeLog('FINGERPRINT', `Mesin Fingerprint menerima SCAN MASUK dari [${this.sim_emp_id}] ${empName} pada pukul ${timeString} WIB.`);
+                        
+                        this.showToast(`Scan berhasil: ${empName}`);
+                        await this.loadAbsensi();
+                        
+                    } catch (error) {
+                        console.error("Scan error:", error);
+                        this.showToast("Gagal memproses data mesin", "error");
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }
+            }));
+        });
+    </script>
 </body>
 </html>
