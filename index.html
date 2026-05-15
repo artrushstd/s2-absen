@@ -349,7 +349,6 @@
             </div>
             <input type="hidden" id="edit-emp-id" value="">
             
-            <!-- INPUT BARU UNTUK ID MESIN (PIN) -->
             <div class="form-group">
                 <label>ID Mesin (PIN di Fingerspot)</label>
                 <input type="number" id="new-emp-id" placeholder="Masukkan ID dari mesin absensi" min="1">
@@ -365,8 +364,9 @@
             </div>
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;">
-                    <label>Umur</label>
-                    <input type="number" id="new-emp-umur" placeholder="Umur" min="17">
+                    <!-- REVISI TANGGAL LAHIR -->
+                    <label>Tanggal Lahir</label>
+                    <input type="date" id="new-emp-tgl-lahir">
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>Status BPJS</label>
@@ -607,7 +607,7 @@
             }
         }
 
-        // --- RENDER KARYAWAN ---
+        // --- RENDER KARYAWAN (DENGAN HITUNG UMUR DINAMIS) ---
         function renderKaryawan() {
             let tbody = document.querySelector('#table-karyawan tbody');
             tbody.innerHTML = '';
@@ -617,14 +617,30 @@
                 return;
             }
 
+            const todayDate = new Date();
+
             db_karyawan.forEach(emp => {
+                // LOGIKA MENGHITUNG UMUR DARI TANGGAL LAHIR
+                let umurStr = '-';
+                if (emp.tanggal_lahir) {
+                    const birthDate = new Date(emp.tanggal_lahir);
+                    let age = todayDate.getFullYear() - birthDate.getFullYear();
+                    const m = todayDate.getMonth() - birthDate.getMonth();
+                    
+                    // Kurangi umur jika bulan ini belum melewati bulan lahir atau harinya belum sampai
+                    if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    umurStr = age + ' Tahun';
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${emp.id}</strong></td>
                         <td>${emp.created_at ? emp.created_at.split('T')[0] : '-'}</td>
                         <td style="color:var(--primary); font-weight:600;">${emp.name}</td>
                         <td>${emp.jabatan}</td>
-                        <td>${emp.umur}</td>
+                        <td>${umurStr}</td>
                         <td><span class="badge ${emp.status_bpjs === 'Aktif' ? 'badge-active' : 'badge-inactive'}">${emp.status_bpjs}</span></td>
                         <td>${formatRp(emp.gaji_per_poin_pokok)}</td>
                         <td><span class="badge ${emp.is_active ? 'badge-active' : 'badge-inactive'}">${emp.is_active ? 'Aktif' : 'Non-Aktif'}</span></td>
@@ -905,10 +921,13 @@
                 if(!emp) return;
 
                 document.getElementById('edit-emp-id').value = emp.id;
-                document.getElementById('new-emp-id').value = emp.id; // Tampilkan ID Mesin di mode Edit
+                document.getElementById('new-emp-id').value = emp.id; 
                 document.getElementById('new-emp-name').value = emp.name;
                 document.getElementById('new-emp-jabatan').value = emp.jabatan;
-                document.getElementById('new-emp-umur').value = emp.umur;
+                
+                // MENGISI DATA TANGGAL LAHIR
+                document.getElementById('new-emp-tgl-lahir').value = emp.tanggal_lahir || ''; 
+                
                 document.getElementById('new-emp-bpjs').value = emp.status_bpjs;
                 document.getElementById('new-emp-gaji-pokok').value = emp.gaji_per_poin_pokok;
                 document.getElementById('new-emp-status').value = emp.is_active ? 'true' : 'false';
@@ -917,10 +936,13 @@
                 btnSave.innerText = "Simpan Perubahan";
             } else {
                 document.getElementById('edit-emp-id').value = '';
-                document.getElementById('new-emp-id').value = ''; // Kosongkan ID Mesin di mode Tambah
+                document.getElementById('new-emp-id').value = ''; 
                 document.getElementById('new-emp-name').value = '';
                 document.getElementById('new-emp-jabatan').value = '';
-                document.getElementById('new-emp-umur').value = '';
+                
+                // KOSONGKAN TANGGAL LAHIR
+                document.getElementById('new-emp-tgl-lahir').value = ''; 
+                
                 document.getElementById('new-emp-bpjs').value = 'Aktif';
                 document.getElementById('new-emp-gaji-pokok').value = '';
                 document.getElementById('new-emp-status').value = 'true';
@@ -937,25 +959,34 @@
             const btn = document.getElementById('btn-save-karyawan');
             const editId = document.getElementById('edit-emp-id').value;
             
-            // Tangkap nilai ID Mesin
             const id_mesin = parseInt(document.getElementById('new-emp-id').value) || 0;
-            
             const name = document.getElementById('new-emp-name').value.trim();
             const jabatan = document.getElementById('new-emp-jabatan').value.trim();
-            const umur = parseInt(document.getElementById('new-emp-umur').value) || 0;
+            
+            // TANGKAP TANGGAL LAHIR
+            const tanggal_lahir = document.getElementById('new-emp-tgl-lahir').value;
+            
             const bpjs = document.getElementById('new-emp-bpjs').value;
             const gaji_pokok = parseInt(document.getElementById('new-emp-gaji-pokok').value) || 0;
             const is_active = document.getElementById('new-emp-status').value === 'true';
 
-            // Validasi: Wajib isi ID Mesin
-            if(!id_mesin || !name || !jabatan || gaji_pokok <= 0) {
-                return alert("Mohon isi form dengan lengkap, termasuk ID Mesin!");
+            if(!id_mesin || !name || !jabatan || !tanggal_lahir || gaji_pokok <= 0) {
+                return alert("Mohon isi form dengan lengkap, termasuk Tanggal Lahir & ID Mesin!");
             }
 
             btn.innerText = "Menyimpan..."; btn.disabled = true;
 
-            // Masukkan id_mesin ke payload Supabase
-            const newEmp = { id: id_mesin, name, jabatan, umur, status_bpjs: bpjs, gaji_per_poin_pokok: gaji_pokok, gaji_per_poin_ekstra: 0, is_active };
+            // MASUKKAN tanggal_lahir KE PAYLOAD (umur dihapus dari payload)
+            const newEmp = { 
+                id: id_mesin, 
+                name, 
+                jabatan, 
+                tanggal_lahir, 
+                status_bpjs: bpjs, 
+                gaji_per_poin_pokok: gaji_pokok, 
+                gaji_per_poin_ekstra: 0, 
+                is_active 
+            };
 
             if(editId) {
                 // UPDATE EXISTING KARYAWAN
