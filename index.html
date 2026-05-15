@@ -349,6 +349,12 @@
             </div>
             <input type="hidden" id="edit-emp-id" value="">
             
+            <!-- INPUT BARU UNTUK ID MESIN (PIN) -->
+            <div class="form-group">
+                <label>ID Mesin (PIN di Fingerspot)</label>
+                <input type="number" id="new-emp-id" placeholder="Masukkan ID dari mesin absensi" min="1">
+            </div>
+
             <div class="form-group">
                 <label>Nama Karyawan</label>
                 <input type="text" id="new-emp-name" placeholder="Masukkan nama lengkap">
@@ -889,7 +895,7 @@
             btn.innerText = "Simpan Detail"; btn.disabled = false;
         }
 
-        // --- MODAL KARYAWAN (TAMBAH & EDIT TANPA GAJI EKSTRA) ---
+        // --- MODAL KARYAWAN (TAMBAH & EDIT) ---
         function openKaryawanModal(empId = null) { 
             const modalTitle = document.getElementById('modal-title-karyawan');
             const btnSave = document.getElementById('btn-save-karyawan');
@@ -899,6 +905,7 @@
                 if(!emp) return;
 
                 document.getElementById('edit-emp-id').value = emp.id;
+                document.getElementById('new-emp-id').value = emp.id; // Tampilkan ID Mesin di mode Edit
                 document.getElementById('new-emp-name').value = emp.name;
                 document.getElementById('new-emp-jabatan').value = emp.jabatan;
                 document.getElementById('new-emp-umur').value = emp.umur;
@@ -910,6 +917,7 @@
                 btnSave.innerText = "Simpan Perubahan";
             } else {
                 document.getElementById('edit-emp-id').value = '';
+                document.getElementById('new-emp-id').value = ''; // Kosongkan ID Mesin di mode Tambah
                 document.getElementById('new-emp-name').value = '';
                 document.getElementById('new-emp-jabatan').value = '';
                 document.getElementById('new-emp-umur').value = '';
@@ -928,6 +936,10 @@
         async function saveKaryawan() {
             const btn = document.getElementById('btn-save-karyawan');
             const editId = document.getElementById('edit-emp-id').value;
+            
+            // Tangkap nilai ID Mesin
+            const id_mesin = parseInt(document.getElementById('new-emp-id').value) || 0;
+            
             const name = document.getElementById('new-emp-name').value.trim();
             const jabatan = document.getElementById('new-emp-jabatan').value.trim();
             const umur = parseInt(document.getElementById('new-emp-umur').value) || 0;
@@ -935,11 +947,15 @@
             const gaji_pokok = parseInt(document.getElementById('new-emp-gaji-pokok').value) || 0;
             const is_active = document.getElementById('new-emp-status').value === 'true';
 
-            if(!name || !jabatan || gaji_pokok <= 0) return alert("Mohon isi form dengan lengkap!");
+            // Validasi: Wajib isi ID Mesin
+            if(!id_mesin || !name || !jabatan || gaji_pokok <= 0) {
+                return alert("Mohon isi form dengan lengkap, termasuk ID Mesin!");
+            }
 
             btn.innerText = "Menyimpan..."; btn.disabled = true;
 
-            const newEmp = { name, jabatan, umur, status_bpjs: bpjs, gaji_per_poin_pokok: gaji_pokok, gaji_per_poin_ekstra: 0, is_active };
+            // Masukkan id_mesin ke payload Supabase
+            const newEmp = { id: id_mesin, name, jabatan, umur, status_bpjs: bpjs, gaji_per_poin_pokok: gaji_pokok, gaji_per_poin_ekstra: 0, is_active };
 
             if(editId) {
                 // UPDATE EXISTING KARYAWAN
@@ -958,7 +974,7 @@
                 // INSERT NEW KARYAWAN
                 const { data, error } = await supabaseApp.from('karyawan').insert([newEmp]).select();
                 if (error) {
-                    alert("Gagal menambahkan karyawan: " + error.message);
+                    alert("Gagal menambahkan karyawan (Pastikan ID Mesin belum terpakai oleh karyawan lain): " + error.message);
                 } else {
                     if (data && data.length > 0) db_karyawan.push(data[0]);
                     else await fetchDataSupabase();
