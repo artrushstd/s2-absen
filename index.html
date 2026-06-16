@@ -1041,6 +1041,57 @@
             let tbodyO = document.querySelector('#dash-table-overtime tbody'); tbodyO.innerHTML = ''; if(overtimeList.length===0) tbodyO.innerHTML='<tr><td colspan="4" class="text-center">Tidak ada data</td></tr>';
             overtimeList.forEach(o => tbodyO.innerHTML+='<tr><td>'+o.emp+'</td><td>'+o.shift+'</td><td style="color:var(--warning); font-weight:600;">'+formatHours(o.total)+'</td><td>'+formatRp(o.est)+'</td></tr>');
             
+            // ==========================================
+            // KODE BARU: AKTIVITAS TERBARU LOGIC
+            // ==========================================
+            let activityFeed = document.getElementById('dash-activity-feed');
+            activityFeed.innerHTML = ''; // Kosongkan tulisan "Sedang memuat..."
+            
+            let recentActivities = [];
+            
+            // Kumpulkan data check in dan check out hari ini
+            absensiFiltered.forEach(ab => {
+                let emp = db_karyawan.find(k => k.id == ab.emp_id);
+                let empName = emp ? emp.name : 'ID ' + ab.emp_id;
+
+                if (ab.clock_in) {
+                    recentActivities.push({
+                        time: ab.clock_in,
+                        text: `<strong>${empName}</strong> melakukan Check-In`,
+                        type: 'in' // Hijau
+                    });
+                }
+                if (ab.clock_out) {
+                    recentActivities.push({
+                        time: ab.clock_out,
+                        text: `<strong>${empName}</strong> melakukan Check-Out`,
+                        type: 'out' // Kuning/Merah
+                    });
+                }
+            });
+
+            // Urutkan dari jam terbaru (descending) ke jam terlama
+            recentActivities.sort((a, b) => b.time.localeCompare(a.time));
+
+            // Tampilkan ke layar (Maksimal 15 aktivitas terbaru agar tidak kepanjangan)
+            if (recentActivities.length === 0) {
+                activityFeed.innerHTML = '<div class="activity-item"><span class="activity-time">-</span>Belum ada aktivitas hari ini</div>';
+            } else {
+                recentActivities.slice(0, 15).forEach(act => {
+                    // Beri warna dot: Hijau untuk Masuk, Kuning untuk Pulang
+                    let dotColor = act.type === 'in' ? 'var(--primary)' : 'var(--warning)';
+                    activityFeed.innerHTML += `
+                        <div class="activity-item" style="--bullet-color: ${dotColor};">
+                            <span class="activity-time"><i class="fa-regular fa-clock"></i> Pukul ${act.time}</span>
+                            ${act.text}
+                        </div>
+                    `;
+                });
+            }
+            // ==========================================
+            // AKHIR KODE BARU
+            // ==========================================
+
             renderCharts();
         }
 
