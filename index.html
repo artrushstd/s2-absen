@@ -454,6 +454,10 @@
         <div class="modal-content" style="width: 500px;">
             <div class="modal-header"><span>Edit Detail Payroll</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeModal()"></i></div>
             <div class="form-group"><label>Nama Karyawan</label><input type="text" id="modal-emp-name" readonly style="background:var(--hover-bg);"></div>
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;"><label>Poin Pokok (Override Bulan)</label><input type="number" id="modal-poin-pokok" step="0.00001"></div>
+                <div class="form-group" style="flex: 1;"><label>Poin Ekstra (Override Bulan)</label><input type="number" id="modal-poin-ekstra" step="0.00001"></div>
+            </div>
             <div class="form-group"><label>Gaji Pokok (Total Keseluruhan)</label><input type="number" id="modal-gaji-pokok"></div>
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>Poin Bonus Tambahan</label><input type="number" id="modal-poin-bonus" step="0.1" min="0" value="0"></div>
