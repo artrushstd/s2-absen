@@ -1182,7 +1182,7 @@
 
         function renderKasbon() {
             let tbody = document.querySelector('#table-kasbon tbody'); tbody.innerHTML = '';
-            if(db_kasbon.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">Data kosong</td></tr>'; return; }
+            if(db_kasbon.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong</td></tr>'; return; }
             
             let activeCount = 0;
             db_kasbon.forEach(k => { 
@@ -1194,12 +1194,13 @@
                 // Hanya tampilkan yang BELUM LUNAS (sisa > 0)
                 if (sisa > 0) {
                     activeCount++;
-                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-inactive clickable-name" onclick="openKasbonDetail('+k.id+')">'+formatRp(sisa)+'</span></td></tr>'; 
+                    // PERHATIKAN BARIS INI: Ada penambahan <td><button ...> untuk icon Hapus
+                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-inactive clickable-name" onclick="openKasbonDetail('+k.id+')">'+formatRp(sisa)+'</span></td><td><button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKasbon('+k.id+', false)" title="Hapus Kasbon"><i class="fa-solid fa-trash"></i></button></td></tr>'; 
                 }
             });
             
             if (activeCount === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data kasbon aktif</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data kasbon aktif</td></tr>';
             }
         }
 
@@ -1216,12 +1217,13 @@
                 // Hanya tampilkan yang SUDAH LUNAS (sisa <= 0)
                 if (sisa <= 0) {
                     historyCount++;
-                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-active clickable-name" onclick="openKasbonDetail('+k.id+')">LUNAS</span></td></tr>'; 
+                    // PERHATIKAN BARIS INI: Ada penambahan <td><button ...> untuk icon Hapus di pop up
+                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-active clickable-name" onclick="openKasbonDetail('+k.id+')">LUNAS</span></td><td><button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKasbon('+k.id+', true)" title="Hapus Kasbon"><i class="fa-solid fa-trash"></i></button></td></tr>'; 
                 }
             });
             
             if (historyCount === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada history kasbon lunas</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada history kasbon lunas</td></tr>';
             }
             
             document.getElementById('modal-history-kasbon').style.display = 'flex';
@@ -1231,6 +1233,7 @@
             document.getElementById('modal-history-kasbon').style.display = 'none';
         };
 
+        // FUNGSI BARU: Hapus Kasbon & Angsurannya
         window.deleteKasbon = async function(kasbonId, isHistory) {
             let konfirmasi = confirm('Apakah Anda yakin ingin menghapus data kasbon ini?\nPeringatan: Semua data angsuran/cicilan yang terkait dengan kasbon ini juga akan terhapus permanen.');
             if (!konfirmasi) return;
@@ -1238,26 +1241,18 @@
             document.getElementById('loading-indicator').style.display = 'inline-block';
             
             try {
-                // 1. Hapus data angsuran yang bersangkutan terlebih dahulu (menghindari error foreign key)
                 await supabaseApp.from('angsuran').delete().eq('kasbon_id', kasbonId);
-                
-                // 2. Hapus data kasbon utamanya
                 const { error } = await supabaseApp.from('kasbon').delete().eq('id', kasbonId);
                 
                 if (error) {
                     alert('Gagal menghapus kasbon: ' + error.message);
                 } else {
-                    // Update array database lokal
                     db_kasbon = db_kasbon.filter(k => k.id != kasbonId);
                     db_angsuran = db_angsuran.filter(a => a.kasbon_id != kasbonId);
-                    
-                    // Render ulang tampilan
                     renderKasbon();
                     renderDashboard();
                     
-                    if (isHistory) {
-                        openHistoryKasbon(); // Refresh popup history jika sedang dibuka
-                    }
+                    if (isHistory) openHistoryKasbon(); 
                     alert('Data kasbon beserta angsurannya berhasil dihapus.');
                 }
             } catch (err) {
