@@ -156,6 +156,23 @@
         .activity-item::before { content: ''; position: absolute; left: -19px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--bullet-color, var(--primary)); border: 2px solid var(--card-bg); }
         .activity-time { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; display: block; }
         canvas { max-height: 300px; width: 100%; }
+
+        /* ================= CALENDAR STYLES ================= */
+        .calendar-wrapper { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+        .calendar-header-days { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--hover-bg); text-align: center; font-weight: 600; font-size: 14px; padding: 12px 0; border-bottom: 1px solid var(--border-color); color: var(--text-dark); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); auto-rows: minmax(100px, auto); }
+        .calendar-day { border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 10px; cursor: pointer; transition: 0.2s; position: relative; display: flex; flex-direction: column; justify-content: space-between; background: var(--card-bg); color: var(--text-dark); }
+        .calendar-day:nth-child(7n) { border-right: none; }
+        .calendar-day:hover { filter: brightness(0.95); }
+        .calendar-date-num { font-weight: 600; font-size: 16px; margin-bottom: 10px; }
+        .calendar-status { font-size: 11px; font-weight: 600; padding: 4px 6px; border-radius: 4px; display: inline-block; text-align: center; }
+        
+        .day-red { background: rgba(239, 68, 68, 0.1) !important; border-left: 4px solid var(--danger); }
+        .day-white { background: var(--card-bg); border-left: 4px solid transparent; }
+        body.dark-mode .day-red { background: rgba(239, 68, 68, 0.2) !important; border-left-color: #f87171; }
+        
+        .empty-day { background: var(--bg-body); cursor: default; }
+        .empty-day:hover { filter: none; }
     </style>
 </head>
 <body>
@@ -182,6 +199,7 @@
             <div class="sidebar-header"><i class="fa-solid fa-fingerprint"></i><span>Suharno 2</span></div>
             <ul class="nav-menu">
                 <li class="nav-item active" onclick="switchPage('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</li>
+                <li class="nav-item" onclick="switchPage('kalender', this)"><i class="fa-solid fa-calendar-days"></i> Kalender Edit</li>
                 <li class="nav-item" onclick="switchPage('karyawan', this)"><i class="fa-solid fa-users"></i> Data Karyawan</li>
                 <li class="nav-item" onclick="switchPage('absensi', this)"><i class="fa-solid fa-calendar-check"></i> Absensi</li>
                 <li class="nav-item" onclick="switchPage('payroll', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Payroll</li>
@@ -257,6 +275,32 @@
                     </div>
                 </div> 
 
+                <!-- ================== PAGE: KALENDER EDIT ================== -->
+                <div id="page-kalender" class="hidden">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                            <h3 class="card-title" style="margin-bottom:0;">Edit Kalender & Tipe Hari</h3>
+                            <div style="display:flex; gap:15px; align-items:center;">
+                                <button class="btn btn-outline" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                                <strong id="calendar-month-year" style="font-size:16px; min-width:150px; text-align:center;">Bulan Tahun</strong>
+                                <button class="btn btn-outline" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="calendar-wrapper">
+                            <div class="calendar-header-days">
+                                <div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div><div style="color:var(--danger)">Min</div>
+                            </div>
+                            <div class="calendar-grid" id="calendar-grid">
+                                <!-- Calendar content injected via JS -->
+                            </div>
+                        </div>
+                        <p style="font-size:12px; color:var(--text-muted); margin-top:15px;">
+                            *Klik pada kotak tanggal untuk mengubah tipe harinya (Weekday, Weekend, Hari Libur).<br>
+                            *Penting: Perubahan tipe hari hanya akan mempengaruhi poin perhitungan karyawan yang <strong>memiliki data absen</strong> pada tanggal tersebut.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- ================== PAGE: DATA KARYAWAN ================== -->
                 <div id="page-karyawan" class="hidden">
                     <div class="card">
@@ -284,7 +328,7 @@
                             <button class="btn btn-primary" onclick="filterAbsensi()"><i class="fa-solid fa-filter"></i> Filter</button>
                             <button class="btn btn-accent" onclick="resetFilterAbsensi()" id="btn-reset-absensi" style="display:none;"><i class="fa-solid fa-rotate-left"></i> Reset Filter Nama</button>
                             <div style="margin-left: auto; display: flex; gap: 10px;">
-                                <button class="btn btn-primary" onclick="openTipeHariModal()"><i class="fa-solid fa-calendar-day"></i> Ubah Tipe Hari</button>
+                                <!-- Tombol Ubah Tipe Hari Masal Dihapus dari sini -->
                                 <button class="btn btn-accent" onclick="printAbsensi()"><i class="fa-solid fa-print"></i> Print Data</button>
                             </div>
                         </div>
@@ -419,14 +463,26 @@
     <!-- Modal Tipe Hari (Absensi) -->
     <div id="modal-tipe-hari" class="modal">
         <div class="modal-content" style="width: 400px;">
-            <div class="modal-header"><span>Ubah Tipe Hari Masal</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTipeHariModal()"></i></div>
-            <div class="form-group"><label>Pilih Tanggal</label><input type="text" id="modal-tipe-date" placeholder="YYYY-MM-DD"></div>
-            <div class="form-group"><label>Kategori Hari</label><select id="modal-tipe-select"><option value="Weekday">Weekday</option><option value="Weekend">Weekend</option><option value="Libur">Hari Libur</option></select></div>
-            <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTipeHariModal()">Batal</button><button class="btn btn-primary" onclick="saveTipeHari()" id="btn-save-tipe">Ubah</button></div>
+            <div class="modal-header"><span>Ubah Tipe Hari</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTipeHariModal()"></i></div>
+            <div class="form-group">
+                <label>Tanggal Terpilih</label>
+                <input type="text" id="modal-tipe-date" readonly style="background: var(--hover-bg); font-weight: bold;">
+            </div>
+            <div class="form-group"><label>Kategori Hari</label>
+                <select id="modal-tipe-select">
+                    <option value="Weekday">Weekday</option>
+                    <option value="Weekend">Weekend</option>
+                    <option value="Libur">Hari Libur</option>
+                </select>
+            </div>
+            <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;">
+                <button class="btn btn-danger" onclick="closeTipeHariModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveTipeHari()" id="btn-save-tipe">Simpan Perubahan</button>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL BARU: Edit Absensi Harian -->
+    <!-- MODAL: Edit Absensi Harian -->
     <div id="modal-edit-absensi" class="modal">
         <div class="modal-content" style="width: 400px;">
             <div class="modal-header">
@@ -454,7 +510,6 @@
         <div class="modal-content" style="width: 500px;">
             <div class="modal-header"><span>Edit Detail Payroll</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeModal()"></i></div>
             <div class="form-group"><label>Nama Karyawan</label><input type="text" id="modal-emp-name" readonly style="background:var(--hover-bg);"></div>
-            <!-- INPUT POIN POKOK & EKSTRA OVERRIDE TELAH DIHAPUS DARI SINI -->
             <div class="form-group"><label>Gaji Pokok (Total Keseluruhan)</label><input type="number" id="modal-gaji-pokok"></div>
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>Poin Bonus Tambahan</label><input type="number" id="modal-poin-bonus" step="0.1" min="0" value="0"></div>
@@ -520,7 +575,6 @@
                 const fpConfig = { mode: "range", dateFormat: "Y-m-d", onOpen: function(selectedDates, dateStr, instance) { instance.clear(); let d = new Date(); instance.setDate([new Date(d.getFullYear(), d.getMonth(), 1), new Date(d.getFullYear(), d.getMonth() + 1, 0)], false); } };
                 flatpickr("#date-range-absensi", fpConfig); flatpickr("#date-range-payroll", fpConfig);
                 flatpickr("#dash-filter-date", { dateFormat: "Y-m-d", defaultDate: todayStr });
-                flatpickr("#modal-tipe-date", { dateFormat: "Y-m-d", defaultDate: todayStr });
                 document.getElementById('date-range-absensi').value = firstDay + " to " + todayStr;
                 document.getElementById('date-range-payroll').value = firstDay + " to " + todayStr;
             }
@@ -555,14 +609,20 @@
                     absensi.forEach(function(ab) {
                         if (ab.date) {
                             var d = new Date(ab.date + "T00:00:00");
-                            if (d.getDay() === 6 && !ab.tipe_hari) { ab.is_weekend = false; ab.tipe_hari = 'Weekday'; }
+                            if (d.getDay() === 0 && !ab.tipe_hari) { ab.is_weekend = true; ab.tipe_hari = 'Weekend'; } // 0 is Sunday
                         }
                     }); db_absensi = absensi;
                 }
                 let { data: bonus } = await supabaseApp.from('bonus').select('*'); if(bonus) { db_bonus = {}; bonus.forEach(function(b) { db_bonus[b.emp_id_period] = b; }); }
                 try { let { data: kasbonData } = await supabaseApp.from('kasbon').select('*'); if(kasbonData) db_kasbon = kasbonData; } catch(e) {}
                 try { let { data: angsuranData } = await supabaseApp.from('angsuran').select('*'); if(angsuranData) db_angsuran = angsuranData; } catch(e) {}
-                applyDashboardFilter(); renderKaryawan(); renderAbsensi(); renderPayroll(); renderKasbon();
+                
+                applyDashboardFilter(); 
+                renderKaryawan(); 
+                renderAbsensi(); 
+                renderPayroll(); 
+                renderKasbon();
+                renderCalendar(); // Render Kalender Baru
             } catch(error) { alert("Gagal menarik data dari server."); } finally { document.getElementById('loading-indicator').style.display = 'none'; }
         }
 
@@ -605,7 +665,6 @@
             return { pokok: Number(poinPokok.toFixed(5)), ekstra: Number(poinEkstra.toFixed(5)), lateness: lateness, lemburBefore: lemburBefore, lemburAfter: lemburAfter, lemburTotal: totalLembur, shiftName: shift.name };
         }
 
-        // --- HELPER UNTUK OVERRIDE POIN MANUAL ---
         function hitungPoinAkhir(ab) {
             let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday');
             let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, tHari);
@@ -613,6 +672,118 @@
             if (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) { p.ekstra = parseFloat(ab.poin_ekstra_override); }
             return p;
         }
+
+        // ================== CALENDAR LOGIC (NEW) ==================
+        let currentCalDate = new Date();
+
+        window.renderCalendar = function() {
+            let year = currentCalDate.getFullYear();
+            let month = currentCalDate.getMonth();
+            document.getElementById('calendar-month-year').innerText = new Date(year, month).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+            
+            // Hari pertama bulan ini (0=Minggu, 1=Senin, ..., 6=Sabtu)
+            let firstDay = new Date(year, month, 1).getDay();
+            // Ubah supaya Senin jadi index 0
+            let firstDayIndex = firstDay === 0 ? 6 : firstDay - 1; 
+            
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
+            let grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Isi hari kosong di awal bulan
+            for(let i = 0; i < firstDayIndex; i++) {
+                grid.innerHTML += '<div class="calendar-day empty-day"></div>';
+            }
+            
+            for(let d = 1; d <= daysInMonth; d++) {
+                let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                let dateObj = new Date(year, month, d);
+                let dayOfWeek = dateObj.getDay(); // 0 is Sun
+                
+                // Set Default: Minggu = Weekend, Senin-Sabtu = Weekday
+                let isWeekendDefault = (dayOfWeek === 0);
+                let tipeHari = isWeekendDefault ? 'Weekend' : 'Weekday';
+                
+                // Cek apakah ada override tipe hari di database absensi pada tanggal tersebut
+                let abData = db_absensi.filter(a => a.date === dateStr);
+                if(abData.length > 0) {
+                    let overriden = abData.find(a => a.tipe_hari === 'Libur');
+                    if(!overriden) overriden = abData.find(a => a.tipe_hari === 'Weekend');
+                    if(!overriden && !isWeekendDefault) overriden = abData.find(a => a.tipe_hari === 'Weekday');
+                    
+                    if(overriden && overriden.tipe_hari) {
+                        tipeHari = overriden.tipe_hari;
+                    }
+                }
+                
+                let boxClass = 'day-white';
+                let statusBadge = '<span class="calendar-status" style="background:#e5e7eb; color:#374151;">Weekday</span>';
+                
+                if(tipeHari === 'Weekend') {
+                    boxClass = 'day-red';
+                    statusBadge = '<span class="calendar-status" style="background:var(--danger); color:#fff;">Weekend</span>';
+                } else if(tipeHari === 'Libur') {
+                    boxClass = 'day-red';
+                    statusBadge = '<span class="calendar-status" style="background:var(--danger); color:#fff;">Hari Libur</span>';
+                }
+                
+                grid.innerHTML += `
+                    <div class="calendar-day ${boxClass}" onclick="openTipeHariModal('${dateStr}', '${tipeHari}')">
+                        <div class="calendar-date-num">${d}</div>
+                        <div>${statusBadge}</div>
+                    </div>
+                `;
+            }
+        };
+
+        window.changeMonth = function(direction) {
+            currentCalDate.setMonth(currentCalDate.getMonth() + direction);
+            renderCalendar();
+        };
+
+        // Mengubah openTipeHariModal supaya menerima input dari kalender
+        window.openTipeHariModal = function(dateStr, currentTipe) { 
+            let dateInput = document.getElementById('modal-tipe-date');
+            dateInput.value = dateStr;
+            if(currentTipe) {
+                document.getElementById('modal-tipe-select').value = currentTipe;
+            }
+            document.getElementById('modal-tipe-hari').style.display = 'flex'; 
+        }; 
+        
+        window.closeTipeHariModal = function() { 
+            document.getElementById('modal-tipe-hari').style.display = 'none'; 
+        }; 
+
+        window.saveTipeHari = async function() { 
+            const date = document.getElementById('modal-tipe-date').value; 
+            const tipe = document.getElementById('modal-tipe-select').value; 
+            if(!date) return; 
+            
+            const btn = document.getElementById('btn-save-tipe'); 
+            btn.innerText = "Menyimpan..."; 
+            btn.disabled = true; 
+            
+            let is_weekend = (tipe === 'Weekend' || tipe === 'Libur'); 
+            const { error } = await supabaseApp.from('absensi').update({ is_weekend: is_weekend, tipe_hari: tipe }).eq('date', date); 
+            
+            if(!error) { 
+                db_absensi.forEach(function(ab) { 
+                    if(ab.date === date) { 
+                        ab.is_weekend = is_weekend; 
+                        ab.tipe_hari = tipe; 
+                    }
+                }); 
+                renderAbsensi(); 
+                renderPayroll(); 
+                renderCalendar(); // Render ulang kalender untuk perbarui warna
+                closeTipeHariModal(); 
+            } else {
+                alert("Gagal merubah tipe hari. Pesan: " + error.message);
+            }
+            btn.innerText = "Simpan Perubahan"; 
+            btn.disabled = false; 
+        };
 
         // ================== DATA KARYAWAN FUNCTIONS ==================
         window.generateIdKaryawan = function() {
@@ -770,14 +941,14 @@
         window.printSurat = function(empId, type) {
             let emp = db_karyawan.find(e => e.id === empId); if(!emp) return;
             let todayIndo = formatTanggalIndo(new Date()); let joinIndo = formatTanggalIndo(emp.join_date);
-            let header = '<div style="text-align:center; border-bottom:3px solid #000; padding-bottom:15px; margin-bottom:20px;"><h1 style="margin:0; font-size:24px; color:#1f497d;">SUHARNO 2</h1><p style="margin:5px 0 0 0; font-size:14px; color:#555;">Jl. Agrowisata Mina Blater Jimbaran, Krandengan, Sidomukti, Bandungan, Kabupaten Semarang, Jawa Tengah </p><p style="margin:0; font-size:13px; color:#555;">Telp: 082281819800 | Email: pemancingansuharno@gmail.com</p></div>';
+            let header = '<div style="text-align:center; border-bottom:3px solid #000; padding-bottom:15px; margin-bottom:20px;"><h1 style="margin:0; font-size:24px; color:#1f497d;">SUHARNO 2</h1><p style="margin:5px 0 0 0; font-size:14px; color:#555;">Jl. Contoh Perusahaan No. 123, Kota Yogyakarta</p><p style="margin:0; font-size:13px; color:#555;">Telp: (0274) 123456 | Email: hrd@suharno2.com</p></div>';
             let title = type === 'aktif' ? 'SURAT KETERANGAN KERJA' : 'SURAT PENGALAMAN KERJA'; let suratNo = type === 'aktif' ? 'SKK' : 'SPK'; let bodyText = '';
             if (type === 'aktif') {
                 bodyText = '<p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p><table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;"><tr><td style="width:150px;">Nama</td><td>: '+emp.name+'</td></tr><tr><td>ID Karyawan</td><td>: '+(emp.id_karyawan || '-')+'</td></tr><tr><td>Jabatan</td><td>: '+(emp.jabatan || '-')+'</td></tr><tr><td>Status Pegawai</td><td>: '+(emp.status_pegawai || 'Pegawai Tetap')+'</td></tr></table><p style="text-align: justify;">Adalah benar merupakan karyawan kami yang telah bekerja sejak tanggal <strong>'+joinIndo+'</strong> hingga saat surat ini dikeluarkan dan masih berstatus aktif bekerja di perusahaan kami.</p><p style="text-align: justify;">Surat keterangan ini dibuat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya oleh pihak yang berkepentingan.</p>';
             } else {
                 bodyText = '<p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p><table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;"><tr><td style="width:150px;">Nama</td><td>: '+emp.name+'</td></tr><tr><td>ID Karyawan</td><td>: '+(emp.id_karyawan || '-')+'</td></tr><tr><td>Jabatan Terakhir</td><td>: '+(emp.jabatan || '-')+'</td></tr></table><p style="text-align: justify;">Telah bekerja di perusahaan kami terhitung sejak tanggal <strong>'+joinIndo+'</strong> hingga tanggal <strong>'+todayIndo+'</strong>.</p><p style="text-align: justify;">Kami mengucapkan banyak terima kasih atas usaha, dedikasi, serta kontribusi yang telah diberikan kepada perusahaan selama masa kerja. Kami berharap kesuksesan untuk karir Saudara/i di masa mendatang.</p><p style="text-align: justify;">Demikian surat pengalaman kerja (Paklaring) ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>';
             }
-            let html = '<html><head><title>'+title+' - '+emp.name+'</title><style>body { font-family: "Times New Roman", Times, serif; padding: 40px 60px; color: #000; line-height:1.6; font-size:16px; } .surat-title { text-align: center; margin-bottom: 30px; } .surat-title h2 { text-decoration: underline; margin: 0; font-size: 20px; font-weight: bold; } .surat-title p { margin: 5px 0 0 0; font-size: 14px; } .signature { margin-top: 60px; text-align: right; } .signature div { display: inline-block; text-align: center; }</style></head><body onload="window.print();">'+header+'<div class="surat-title"><h2>'+title+'</h2><p>No: 0'+emp.id+'/'+suratNo+'/HRD/'+(new Date().getMonth()+1)+'/'+new Date().getFullYear()+'</p></div>'+bodyText+'<div class="signature"><div><p>Kab. Semarang, '+todayIndo+'</p><br><br><br><br><p style="text-decoration: underline; font-weight:bold; margin-bottom:0;">HRD Manager</p><p style="margin:0;">Suharno 2</p></div></div></body></html>';
+            let html = '<html><head><title>'+title+' - '+emp.name+'</title><style>body { font-family: "Times New Roman", Times, serif; padding: 40px 60px; color: #000; line-height:1.6; font-size:16px; } .surat-title { text-align: center; margin-bottom: 30px; } .surat-title h2 { text-decoration: underline; margin: 0; font-size: 20px; font-weight: bold; } .surat-title p { margin: 5px 0 0 0; font-size: 14px; } .signature { margin-top: 60px; text-align: right; } .signature div { display: inline-block; text-align: center; }</style></head><body onload="window.print();">'+header+'<div class="surat-title"><h2>'+title+'</h2><p>No: 0'+emp.id+'/'+suratNo+'/HRD/'+(new Date().getMonth()+1)+'/'+new Date().getFullYear()+'</p></div>'+bodyText+'<div class="signature"><div><p>Yogyakarta, '+todayIndo+'</p><br><br><br><br><p style="text-decoration: underline; font-weight:bold; margin-bottom:0;">HRD Manager</p><p style="margin:0;">Suharno 2</p></div></div></body></html>';
             let win = window.open('', '_blank'); win.document.write(html); win.document.close();
         }
 
@@ -885,9 +1056,10 @@
             document.querySelectorAll('.page-content, div[id^="page-"]').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.remove('hidden');
             if(element) element.classList.add('active'); else { let activeNav = document.querySelector('.nav-item[onclick*="' + pageId + '"]'); if (activeNav) activeNav.classList.add('active'); }
-            const titles = { 'dashboard': 'Dashboard', 'karyawan': 'Data Karyawan', 'absensi': 'Manajemen Absensi', 'payroll': 'Perhitungan Payroll', 'kasbon': 'Kasbon Karyawan' };
+            const titles = { 'dashboard': 'Dashboard', 'kalender': 'Kalender Edit', 'karyawan': 'Data Karyawan', 'absensi': 'Manajemen Absensi', 'payroll': 'Perhitungan Payroll', 'kasbon': 'Kasbon Karyawan' };
             document.getElementById('topbar-title').innerHTML = titles[pageId] + ' <span id="loading-indicator" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</span>';
             if(pageId === 'dashboard') renderDashboard();
+            if(pageId === 'kalender') renderCalendar();
         };
 
         window.filterAbsensi = function() { let range = document.getElementById('date-range-absensi').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangeAbsensi.start = range[0]; dateRangeAbsensi.end = range[1] || range[0]; } renderAbsensi(); };
@@ -935,9 +1107,6 @@
             if(db_kasbon.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">Data kosong</td></tr>'; return; }
             db_kasbon.forEach(k => { let emp = db_karyawan.find(e => e.id == k.emp_id); let totA = 0; db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal)); let sisa = parseFloat(k.total_pinjaman) - totA; tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge '+(sisa<=0?'badge-active':'badge-inactive')+' clickable-name" onclick="openKasbonDetail('+k.id+')">'+(sisa<=0?'LUNAS':formatRp(sisa))+'</span></td></tr>'; });
         }
-
-        // Tipe Hari, Kasbon, etc
-        window.openTipeHariModal = function() { document.getElementById('modal-tipe-hari').style.display = 'flex'; }; window.closeTipeHariModal = function() { document.getElementById('modal-tipe-hari').style.display = 'none'; }; window.saveTipeHari = async function() { const date = document.getElementById('modal-tipe-date').value; const tipe = document.getElementById('modal-tipe-select').value; if(!date) return; const btn = document.getElementById('btn-save-tipe'); btn.innerText = "Menyimpan..."; btn.disabled = true; let is_weekend = (tipe === 'Weekend' || tipe === 'Libur'); const { error } = await supabaseApp.from('absensi').update({ is_weekend: is_weekend, tipe_hari: tipe }).eq('date', date); if(!error) { db_absensi.forEach(function(ab) { if(ab.date === date) { ab.is_weekend = is_weekend; ab.tipe_hari = tipe; }}); renderAbsensi(); renderPayroll(); closeTipeHariModal(); alert("Berhasil."); } btn.innerText = "Ubah"; btn.disabled = false; };
         
         let currentEditEmpId = null; 
         window.openBonusModal = function(empId, empName, calcPokok, calcEkstra, calcGajiPokok) { 
