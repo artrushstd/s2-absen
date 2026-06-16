@@ -782,7 +782,8 @@
                 let shift = getShiftDetails(jamMasuk, tipeHari);
                 
                 let effectiveInNormal = inH;
-                if (inH > shift.start && inH <= shift.start + 0.25) effectiveInNormal = shift.start; 
+                // --- BATAS KETERLAMBATAN SEKARNG 10 MENIT---
+                if (inH > shift.start && inH <= shift.start + 0.166) effectiveInNormal = shift.start; 
 
                 let lateness = Math.max(0, effectiveInNormal - shift.start);
                 let startNormal = Math.max(effectiveInNormal, shift.start);
