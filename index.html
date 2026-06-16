@@ -167,9 +167,14 @@
         .calendar-date-num { font-weight: 600; font-size: 16px; margin-bottom: 10px; }
         .calendar-status { font-size: 11px; font-weight: 600; padding: 4px 6px; border-radius: 4px; display: inline-block; text-align: center; }
         
-        .day-red { background: rgba(239, 68, 68, 0.1) !important; border-left: 4px solid var(--danger); }
-        .day-white { background: var(--card-bg); border-left: 4px solid transparent; }
-        body.dark-mode .day-red { background: rgba(239, 68, 68, 0.2) !important; border-left-color: #f87171; }
+        /* Warna Kotak Kalender (Senada dengan Badge) */
+        .day-weekday { background: rgba(52, 211, 153, 0.05) !important; border-left: 4px solid #34d399; }
+        .day-weekend { background: rgba(239, 68, 68, 0.05) !important; border-left: 4px solid #f87171; }
+        .day-libur { background: rgba(245, 158, 11, 0.05) !important; border-left: 4px solid #fbbf24; }
+        
+        body.dark-mode .day-weekday { background: rgba(52, 211, 153, 0.1) !important; }
+        body.dark-mode .day-weekend { background: rgba(239, 68, 68, 0.1) !important; }
+        body.dark-mode .day-libur { background: rgba(245, 158, 11, 0.1) !important; }
         
         .empty-day { background: var(--bg-body); cursor: default; }
         .empty-day:hover { filter: none; }
@@ -199,7 +204,7 @@
             <div class="sidebar-header"><i class="fa-solid fa-fingerprint"></i><span>Suharno 2</span></div>
             <ul class="nav-menu">
                 <li class="nav-item active" onclick="switchPage('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</li>
-                <li class="nav-item" onclick="switchPage('kalender', this)"><i class="fa-solid fa-calendar-days"></i> Kalender Edit</li>
+                <li class="nav-item" onclick="switchPage('kalender', this)"><i class="fa-solid fa-calendar-days"></i> Kalender</li>
                 <li class="nav-item" onclick="switchPage('karyawan', this)"><i class="fa-solid fa-users"></i> Data Karyawan</li>
                 <li class="nav-item" onclick="switchPage('absensi', this)"><i class="fa-solid fa-calendar-check"></i> Absensi</li>
                 <li class="nav-item" onclick="switchPage('payroll', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Payroll</li>
@@ -275,7 +280,7 @@
                     </div>
                 </div> 
 
-                <!-- ================== PAGE: KALENDER EDIT ================== -->
+                <!-- ================== PAGE: Kalender ================== -->
                 <div id="page-kalender" class="hidden">
                     <div class="card">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -731,15 +736,16 @@
                     }
                 }
                 
-                let boxClass = 'day-white';
-                let statusBadge = '<span class="calendar-status" style="background:#e5e7eb; color:#374151;">Weekday</span>';
+                // --- PENYESUAIAN WARNA DAN BADGE DI SINI ---
+                let boxClass = 'day-weekday';
+                let statusBadge = '<span class="badge badge-active">Weekday</span>';
                 
                 if(tipeHari === 'Weekend') {
-                    boxClass = 'day-red';
-                    statusBadge = '<span class="calendar-status" style="background:var(--danger); color:#fff;">Weekend</span>';
-                } else if(tipeHari === 'Libur') {
-                    boxClass = 'day-red';
-                    statusBadge = '<span class="calendar-status" style="background:var(--danger); color:#fff;">Hari Libur</span>';
+                    boxClass = 'day-weekend';
+                    statusBadge = '<span class="badge badge-inactive">Weekend</span>';
+                } else if(tipeHari === 'Libur' || tipeHari === 'Hari Libur') {
+                    boxClass = 'day-libur';
+                    statusBadge = '<span class="badge badge-warning">Libur</span>';
                 }
                 
                 grid.innerHTML += `
@@ -1122,7 +1128,7 @@
             document.querySelectorAll('.page-content, div[id^="page-"]').forEach(el => el.classList.add('hidden')); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.remove('hidden');
             if(element) element.classList.add('active'); else { let activeNav = document.querySelector('.nav-item[onclick*="' + pageId + '"]'); if (activeNav) activeNav.classList.add('active'); }
-            const titles = { 'dashboard': 'Dashboard', 'kalender': 'Kalender Edit', 'karyawan': 'Data Karyawan', 'absensi': 'Manajemen Absensi', 'payroll': 'Perhitungan Payroll', 'kasbon': 'Kasbon Karyawan' };
+            const titles = { 'dashboard': 'Dashboard', 'kalender': 'Kalender', 'karyawan': 'Data Karyawan', 'absensi': 'Manajemen Absensi', 'payroll': 'Perhitungan Payroll', 'kasbon': 'Kasbon Karyawan' };
             document.getElementById('topbar-title').innerHTML = titles[pageId] + ' <span id="loading-indicator" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</span>';
             if(pageId === 'dashboard') renderDashboard();
             if(pageId === 'kalender') renderCalendar();
