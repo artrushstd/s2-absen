@@ -403,7 +403,7 @@
                         </div>
                         <div class="table-container">
                             <table id="table-karyawan">
-                                <thead><tr><th>ID (Mesin)</th><th>Tgl Join</th><th>Nama Karyawan</th><th>Jabatan</th><th>Umur</th><th>Status BPJS</th><th>Gaji Pokok</th><th>Status Aktif</th><th>Aksi</th></tr></thead>
+                                <thead><tr><th>ID (Mesin)</th><th>ID Karyawan</th><th>Tgl Join</th><th>Nama Karyawan</th><th>Jabatan</th><th>Umur</th><th>Status BPJS</th><th>Gaji Pokok</th><th>Status Aktif</th><th>Aksi</th></tr></thead>
                                 <tbody><tr><td colspan="9" class="text-center">Mengambil data...</td></tr></tbody>
                             </table>
                         </div>
@@ -526,14 +526,23 @@
     </div>
 
     <div id="modal-karyawan" class="modal">
-        <div class="modal-content" style="width: 480px;">
+            <div class="modal-content" style="width: 480px;">
             <div class="modal-header"><span id="modal-title-karyawan">Tambah Data Karyawan</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeKaryawanModal()"></i></div>
             <input type="hidden" id="edit-emp-id" value="">
-            <div class="form-group"><label>ID Mesin (PIN di Fingerspot)</label><input type="number" id="new-emp-id" min="1"></div>
+            
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;"><label>ID Mesin (PIN di Fingerspot)</label><input type="number" id="new-emp-id" min="1" oninput="generateIdKaryawan()"></div>
+                <div class="form-group" style="flex: 1;">
+                    <label>ID Karyawan</label>
+                    <!-- Input ini Readonly karena sistem yang akan meng-generate otomatis -->
+                    <input type="text" id="new-emp-id-karyawan" readonly style="background:var(--hover-bg); font-weight: bold; color: var(--primary);">
+                </div>
+            </div>
+            
             <div class="form-group"><label>Nama Karyawan</label><input type="text" id="new-emp-name"></div>
             <div class="form-group"><label>Jabatan</label><input type="text" id="new-emp-jabatan"></div>
             <div style="display: flex; gap: 16px;">
-                <div class="form-group" style="flex: 1;"><label>Tanggal Join</label><input type="date" id="new-emp-tgl-join"></div>
+                <div class="form-group" style="flex: 1;"><label>Tanggal Join</label><input type="date" id="new-emp-tgl-join" onchange="generateIdKaryawan()"></div>
                 <div class="form-group" style="flex: 1;"><label>Tanggal Lahir</label><input type="date" id="new-emp-tgl-lahir"></div>
             </div>
             <div style="display: flex; gap: 16px;">
@@ -1153,6 +1162,7 @@
         window.printKaryawanData = function() {
             // Membaca status checklist kolom
             var showId = document.getElementById('print-col-id').checked;
+            var showIdKaryawan = document.getElementById('print-col-id-karyawan').checked;
             var showJoin = document.getElementById('print-col-join').checked;
             var showJabatan = document.getElementById('print-col-jabatan').checked;
             var showUmur = document.getElementById('print-col-umur').checked;
@@ -1184,6 +1194,7 @@
             
             html += '<table><thead><tr>';
             if (showId) html += '<th>ID Mesin</th>';
+            if (showIdKaryawan) html += '<th>ID Karyawan</th>';
             if (showJoin) html += '<th>Tanggal Join</th>';
             html += '<th>Nama Karyawan</th>';
             if (showJabatan) html += '<th>Jabatan</th>';
@@ -1215,6 +1226,7 @@
 
                     html += '<tr>';
                     if (showId) html += '<td><strong>' + emp.id + '</strong></td>';
+                    if (showIdKaryawan) html += '<td><strong>' + (emp.id_karyawan || '-') + '</strong></td>';
                     if (showJoin) html += '<td>' + (emp.join_date || '-') + '</td>';
                     html += '<td><strong>' + emp.name + '</strong></td>';
                     if (showJabatan) html += '<td>' + (emp.jabatan || '-') + '</td>';
@@ -1450,7 +1462,18 @@
                         const m = todayDate.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) age--;
                         umurStr = age + ' Thn';
                     }
-                    tbody.innerHTML += '<tr><td><strong>'+emp.id+'</strong></td><td>'+(emp.join_date ? emp.join_date : '-')+'</td><td class="clickable-name">'+emp.name+'</td><td>'+emp.jabatan+'</td><td>'+umurStr+'</td><td><span class="badge '+(emp.status_bpjs === 'Aktif' ? 'badge-active' : 'badge-inactive')+'">'+emp.status_bpjs+'</span></td><td>'+formatRp(emp.gaji_per_poin_pokok)+'</td><td><span class="badge '+(emp.is_active ? 'badge-active' : 'badge-inactive')+'">'+(emp.is_active ? 'Aktif' : 'Non-Aktif')+'</span></td><td><button class="btn btn-accent" style="padding:6px 12px; font-size:12px;" onclick="openKaryawanModal('+emp.id+')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>';
+                    tbody.innerHTML += '<tr>' +
+                        '<td><strong>'+emp.id+'</strong></td>' +
+                        '<td><strong><span style="color:var(--primary)">'+(emp.id_karyawan || '-')+'</span></strong></td>' + // Tambahkan baris ini
+                        '<td>'+(emp.join_date ? emp.join_date : '-')+'</td>' +
+                        '<td class="clickable-name">'+emp.name+'</td>' +
+                        '<td>'+emp.jabatan+'</td>' +
+                        '<td>'+umurStr+'</td>' +
+                        '<td><span class="badge '+(emp.status_bpjs === 'Aktif' ? 'badge-active' : 'badge-inactive')+'">'+emp.status_bpjs+'</span></td>' +
+                        '<td>'+formatRp(emp.gaji_per_poin_pokok)+'</td>' +
+                        '<td><span class="badge '+(emp.is_active ? 'badge-active' : 'badge-inactive')+'">'+(emp.is_active ? 'Aktif' : 'Non-Aktif')+'</span></td>' +
+                        '<td><button class="btn btn-accent" style="padding:6px 12px; font-size:12px;" onclick="openKaryawanModal('+emp.id+')"><i class="fa-solid fa-pen"></i> Edit</button></td>' +
+                    '</tr>';
                 });
             }
 
@@ -1594,26 +1617,76 @@
                 if(!error) { db_bonus[bonusKey] = payload; renderPayroll(); closeModal(); } btn.disabled = false;
             };
 
-            window.openKaryawanModal = function(empId) { 
+            window.generateIdKaryawan = function() {
+                let idMesin = document.getElementById('new-emp-id').value;
+                let joinDate = document.getElementById('new-emp-tgl-join').value;
+                
+                if (!idMesin) {
+                    document.getElementById('new-emp-id-karyawan').value = '';
+                    return;
+                }
+                
+                // Default ambil hari ini jika tgl join belum diisi
+                let dateObj = joinDate ? new Date(joinDate) : new Date();
+                let yy = String(dateObj.getFullYear()).slice(-2);
+                let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let padId = String(idMesin).padStart(3, '0'); // Paksa jadi 3 digit
+                
+                document.getElementById('new-emp-id-karyawan').value = `SH2-${yy}${mm}-${padId}`;
+            };
+            
+           window.openKaryawanModal = function(empId) { 
                 const btnSave = document.getElementById('btn-save-karyawan');
                 if (empId) {
                     let emp = db_karyawan.find(function(k) { return k.id == empId; }); if(!emp) return;
-                    document.getElementById('edit-emp-id').value = emp.id; document.getElementById('new-emp-id').value = emp.id; document.getElementById('new-emp-name').value = emp.name;
-                    document.getElementById('new-emp-jabatan').value = emp.jabatan; document.getElementById('new-emp-tgl-join').value = emp.join_date || ''; document.getElementById('new-emp-tgl-lahir').value = emp.tanggal_lahir || ''; 
-                    document.getElementById('new-emp-bpjs').value = emp.status_bpjs; document.getElementById('new-emp-gaji-pokok').value = emp.gaji_per_poin_pokok; document.getElementById('new-emp-status').value = emp.is_active ? 'true' : 'false';
+                    document.getElementById('edit-emp-id').value = emp.id; 
+                    document.getElementById('new-emp-id').value = emp.id; 
+                    document.getElementById('new-emp-id-karyawan').value = emp.id_karyawan || ''; // Data baru
+                    document.getElementById('new-emp-name').value = emp.name;
+                    document.getElementById('new-emp-jabatan').value = emp.jabatan; 
+                    document.getElementById('new-emp-tgl-join').value = emp.join_date || ''; 
+                    document.getElementById('new-emp-tgl-lahir').value = emp.tanggal_lahir || ''; 
+                    document.getElementById('new-emp-bpjs').value = emp.status_bpjs; 
+                    document.getElementById('new-emp-gaji-pokok').value = emp.gaji_per_poin_pokok; 
+                    document.getElementById('new-emp-status').value = emp.is_active ? 'true' : 'false';
                     btnSave.innerText = "Simpan Perubahan";
                 } else {
-                    document.getElementById('edit-emp-id').value = ''; document.getElementById('new-emp-id').value = ''; document.getElementById('new-emp-name').value = ''; document.getElementById('new-emp-jabatan').value = ''; document.getElementById('new-emp-tgl-join').value = ''; document.getElementById('new-emp-tgl-lahir').value = ''; document.getElementById('new-emp-bpjs').value = 'Aktif'; document.getElementById('new-emp-gaji-pokok').value = ''; document.getElementById('new-emp-status').value = 'true';
+                    document.getElementById('edit-emp-id').value = ''; 
+                    document.getElementById('new-emp-id').value = ''; 
+                    document.getElementById('new-emp-id-karyawan').value = ''; // Data baru
+                    document.getElementById('new-emp-name').value = ''; 
+                    document.getElementById('new-emp-jabatan').value = ''; 
+                    document.getElementById('new-emp-tgl-join').value = ''; 
+                    document.getElementById('new-emp-tgl-lahir').value = ''; 
+                    document.getElementById('new-emp-bpjs').value = 'Aktif'; 
+                    document.getElementById('new-emp-gaji-pokok').value = ''; 
+                    document.getElementById('new-emp-status').value = 'true';
                     btnSave.innerText = "Buat Karyawan";
                 }
                 document.getElementById('modal-karyawan').style.display = 'flex'; 
             };
-            window.closeKaryawanModal = function() { document.getElementById('modal-karyawan').style.display = 'none'; };
+            
             window.saveKaryawan = async function() {
-                const btn = document.getElementById('btn-save-karyawan'); const editId = document.getElementById('edit-emp-id').value;
-                const newEmp = { id: parseInt(document.getElementById('new-emp-id').value)||0, name: document.getElementById('new-emp-name').value.trim(), jabatan: document.getElementById('new-emp-jabatan').value.trim(), join_date: document.getElementById('new-emp-tgl-join').value, tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, status_bpjs: document.getElementById('new-emp-bpjs').value, gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value)||0, gaji_per_poin_ekstra: 0, is_active: document.getElementById('new-emp-status').value === 'true' };
+                const btn = document.getElementById('btn-save-karyawan'); 
+                const editId = document.getElementById('edit-emp-id').value;
+                
+                // Tambahkan id_karyawan ke payload
+                const newEmp = { 
+                    id: parseInt(document.getElementById('new-emp-id').value)||0, 
+                    id_karyawan: document.getElementById('new-emp-id-karyawan').value, // Ini data barunya
+                    name: document.getElementById('new-emp-name').value.trim(), 
+                    jabatan: document.getElementById('new-emp-jabatan').value.trim(), 
+                    join_date: document.getElementById('new-emp-tgl-join').value, 
+                    tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, 
+                    status_bpjs: document.getElementById('new-emp-bpjs').value, 
+                    gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value)||0, 
+                    gaji_per_poin_ekstra: 0, 
+                    is_active: document.getElementById('new-emp-status').value === 'true' 
+                };
+                
                 if(!newEmp.id || !newEmp.name || !newEmp.join_date || !newEmp.tanggal_lahir || newEmp.gaji_per_poin_pokok <= 0) return alert("Isi form lengkap!");
                 btn.disabled = true;
+                
                 if(editId) {
                     const { data, error } = await supabaseApp.from('karyawan').update(newEmp).eq('id', editId).select();
                     if(!error) { let idx = db_karyawan.findIndex(function(k) { return k.id == editId; }); if(idx>-1 && data.length) db_karyawan[idx] = data[0]; else fetchDataSupabase(); closeKaryawanModal(); alert("Berhasil."); }
@@ -1958,6 +2031,12 @@
                 
                 <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
                     <input type="checkbox" id="print-col-id" style="width: auto;"> ID Mesin (Default: Off)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                    <input type="checkbox" id="print-col-id" style="width: auto;"> ID Mesin (Default: Off)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                    <input type="checkbox" id="print-col-id-karyawan" style="width: auto;" checked> ID Karyawan (SH2)
                 </label>
                 <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
                     <input type="checkbox" id="print-col-join" style="width: auto;" checked> Tanggal Join
