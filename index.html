@@ -296,7 +296,7 @@
                                         <th onclick="toggleSortAbsensi('name')" style="cursor: pointer;">Nama <i id="sort-icon-name" class="fa-solid fa-sort"></i></th>
                                         <th onclick="toggleSortAbsensi('in')" style="cursor: pointer;">Jam Masuk <i id="sort-icon-in" class="fa-solid fa-sort"></i></th>
                                         <th onclick="toggleSortAbsensi('out')" style="cursor: pointer;">Jam Keluar <i id="sort-icon-out" class="fa-solid fa-sort"></i></th>
-                                        <th>Tipe Hari</th><th>Poin Pokok</th><th>Poin Ekstra</th>
+                                        <th>Tipe Hari</th><th>Poin Pokok</th><th>Poin Ekstra</th><th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody><tr><td colspan="7" class="text-center">Terapkan filter tanggal untuk melihat data</td></tr></tbody>
@@ -428,6 +428,32 @@
         </div>
     </div>
 
+    <!-- Modal Edit Absensi Harian -->
+    <div id="modal-edit-absensi" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <span>Edit Poin Absensi Harian</span>
+                <i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeEditAbsensiModal()"></i>
+            </div>
+            <input type="hidden" id="edit-absensi-emp-id">
+            <input type="hidden" id="edit-absensi-date">
+            
+            <div class="form-group"><label>Nama Karyawan</label><input type="text" id="edit-absensi-name" readonly style="background:var(--hover-bg);"></div>
+            <div class="form-group"><label>Tanggal Absensi</label><input type="text" id="edit-absensi-date-display" readonly style="background:var(--hover-bg); font-weight:bold;"></div>
+            
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;"><label>Poin Pokok (Manual)</label><input type="number" id="edit-absensi-pokok" step="0.00001"></div>
+                <div class="form-group" style="flex: 1;"><label>Poin Ekstra (Manual)</label><input type="number" id="edit-absensi-ekstra" step="0.00001"></div>
+            </div>
+            <small style="color: var(--danger); font-size: 11px;">*Kosongkan kolom di atas jika ingin kembali menggunakan poin perhitungan otomatis dari sistem.</small>
+            
+            <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;">
+                <button class="btn btn-danger" onclick="closeEditAbsensiModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveEditAbsensi()" id="btn-save-edit-absensi">Simpan Poin</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Modal Kasbon Detail & Tambah Kasbon/Angsuran & Edit Payroll (Tidak Diubah) -->
     <div id="modal-bonus" class="modal"><div class="modal-content" style="width: 500px;"><div class="modal-header"><span>Edit Detail Payroll</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeModal()"></i></div><div class="form-group"><label>Nama Karyawan</label><input type="text" id="modal-emp-name" readonly style="background:var(--hover-bg);"></div><div style="display: flex; gap: 16px;"><div class="form-group" style="flex: 1;"><label>Poin Pokok (Override)</label><input type="number" id="modal-poin-pokok" step="0.00001"></div><div class="form-group" style="flex: 1;"><label>Poin Ekstra (Override)</label><input type="number" id="modal-poin-ekstra" step="0.00001"></div></div><div class="form-group"><label>Gaji Pokok (Total Keseluruhan)</label><input type="number" id="modal-gaji-pokok"></div><div style="display: flex; gap: 16px;"><div class="form-group" style="flex: 1;"><label>Poin Bonus Tambahan</label><input type="number" id="modal-poin-bonus" step="0.1" min="0" value="0"></div><div class="form-group" style="flex: 1;"><label>Gaji Bonus (Rp)</label><input type="number" id="modal-gaji-bonus" min="0" value="0"></div></div><small style="color: var(--text-muted); font-size: 11px;">*Kosongkan Override jika ingin otomatis berdasar shift.</small><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="saveBonus()" id="btn-save-bonus">Simpan Detail</button></div></div></div>
     <div id="modal-kasbon-detail" class="modal"><div class="modal-content" style="width: 600px;"><div class="modal-header"><span id="kasbon-detail-title">Detail Kasbon</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeKasbonDetail()"></i></div><div style="margin-bottom: 16px; display:flex; justify-content: space-between; align-items:center;"><h4 style="margin: 0; font-size:15px;" id="kasbon-detail-sisa">Sisa: Rp 0</h4><button class="btn btn-primary" id="btn-tambah-angsuran" onclick="openTambahAngsuran()"><i class="fa-solid fa-plus"></i> Tambah Angsuran</button></div><div class="table-container" style="max-height: 400px; overflow-y:auto;"><table id="table-angsuran"><thead><tr><th>Tanggal Angsuran</th><th>Angsuran Ke</th><th>Nominal</th><th>Sisa Pinjaman</th></tr></thead><tbody></tbody></table></div></div></div>
@@ -568,6 +594,83 @@
 
             return { pokok: Number(poinPokok.toFixed(5)), ekstra: Number(poinEkstra.toFixed(5)), lateness: lateness, lemburBefore: lemburBefore, lemburAfter: lemburAfter, lemburTotal: totalLembur, shiftName: shift.name };
         }
+
+                // --- HELPER UNTUK OVERRIDE POIN MANUAL ---
+        function hitungPoinAkhir(ab) {
+            let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday');
+            let p = hitungPoinAkhir(ab);
+            
+            // Jika HR mengedit poin secara manual, timpa nilai otomatisnya
+            if (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) {
+                p.pokok = parseFloat(ab.poin_pokok_override);
+            }
+            if (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) {
+                p.ekstra = parseFloat(ab.poin_ekstra_override);
+            }
+            return p;
+        }
+        
+        // --- FUNGSI MODAL EDIT ABSENSI HARIAN ---
+        window.openEditAbsensiModal = function(empId, date, empName) {
+            let ab = db_absensi.find(a => a.emp_id == empId && a.date === date);
+            if(!ab) return;
+            
+            document.getElementById('edit-absensi-emp-id').value = empId;
+            document.getElementById('edit-absensi-date').value = date;
+            document.getElementById('edit-absensi-name').value = empName;
+            document.getElementById('edit-absensi-date-display').value = date;
+            
+            // Kalkulasi poin aslinya untuk dimunculkan sebagai referensi (placeholder)
+            let pCalc = hitungPoinUtuh(ab.clock_in, ab.clock_out, ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'));
+            
+            let inputPokok = document.getElementById('edit-absensi-pokok');
+            let inputEkstra = document.getElementById('edit-absensi-ekstra');
+            
+            inputPokok.placeholder = "Auto: " + pCalc.pokok;
+            inputEkstra.placeholder = "Auto: " + pCalc.ekstra;
+            
+            // Isi dengan nilai manual yang tersimpan di database (jika ada)
+            inputPokok.value = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? ab.poin_pokok_override : '';
+            inputEkstra.value = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? ab.poin_ekstra_override : '';
+            
+            document.getElementById('modal-edit-absensi').style.display = 'flex';
+        };
+        
+        window.closeEditAbsensiModal = function() {
+            document.getElementById('modal-edit-absensi').style.display = 'none';
+        };
+        
+        window.saveEditAbsensi = async function() {
+            let empId = document.getElementById('edit-absensi-emp-id').value;
+            let date = document.getElementById('edit-absensi-date').value;
+            let pokok = document.getElementById('edit-absensi-pokok').value;
+            let ekstra = document.getElementById('edit-absensi-ekstra').value;
+            
+            let payload = {
+                poin_pokok_override: pokok !== '' ? parseFloat(pokok) : null,
+                poin_ekstra_override: ekstra !== '' ? parseFloat(ekstra) : null
+            };
+            
+            let btn = document.getElementById('btn-save-edit-absensi');
+            btn.disabled = true; btn.innerText = "Menyimpan...";
+            
+            const { error } = await supabaseApp.from('absensi').update(payload).eq('emp_id', empId).eq('date', date);
+                
+            if(!error) {
+                // Update data di memory lokal
+                let ab = db_absensi.find(a => a.emp_id == empId && a.date === date);
+                if(ab) {
+                    ab.poin_pokok_override = payload.poin_pokok_override;
+                    ab.poin_ekstra_override = payload.poin_ekstra_override;
+                }
+                // Render ulang semua kalkulasi agar otomatis singkron
+                renderAbsensi(); renderPayroll(); renderDashboard();
+                closeEditAbsensiModal();
+            } else {
+                alert("Gagal menyimpan data: " + error.message);
+            }
+            btn.disabled = false; btn.innerText = "Simpan Poin";
+        }; 
 
         // ================== DATA KARYAWAN FUNCTIONS ==================
         
@@ -897,7 +1000,7 @@
             let absensiMonth = db_absensi.filter(a => a.date >= mStart && a.date <= mEnd);
             let mPayPokok=0; let mPayLembur=0; let mPayBonus=0; let empPayrollData = {};
             db_karyawan.forEach(e => empPayrollData[e.id] = { pokok:0, ekstra:0 });
-            absensiMonth.forEach(ab => { if(empPayrollData[ab.emp_id]) { let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday')); empPayrollData[ab.emp_id].pokok += p.pokok; empPayrollData[ab.emp_id].ekstra += p.ekstra; } });
+            absensiMonth.forEach(ab => { if(empPayrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); empPayrollData[ab.emp_id].pokok += p.pokok; empPayrollData[ab.emp_id].ekstra += p.ekstra; } });
             let activeBpjsCount = 0; let potBpjsTot = 0; let isBpjsDeductible = today.getDate() >= 10;
             db_karyawan.forEach(emp => {
                 if(emp.status_bpjs === 'Aktif') activeBpjsCount++; let data = empPayrollData[emp.id]; if(!data || data.pokok === 0) return;
@@ -934,7 +1037,7 @@
 
         function renderCharts() {
             if (typeof Chart === 'undefined') return; let isDark = document.body.classList.contains('dark-mode'); let tColor = isDark ? '#f3f4f6' : '#1f2937'; let gColor = isDark ? '#374151' : '#e5e7eb'; let labels7 = []; let dataHadir = []; let dataTelat = [];
-            for(let i=6; i>=0; i--) { let d = new Date(); d.setDate(d.getDate() - i); let dStr = d.toISOString().split('T')[0]; labels7.push(d.getDate() + '/' + (d.getMonth()+1)); let abH = db_absensi.filter(a => a.date === dStr); let cTelat = 0; abH.forEach(a => { let p = hitungPoinUtuh(a.clock_in, a.clock_out, a.tipe_hari); if(p.lateness > 0) cTelat++; }); dataHadir.push(abH.length); dataTelat.push(cTelat); }
+            for(let i=6; i>=0; i--) { let d = new Date(); d.setDate(d.getDate() - i); let dStr = d.toISOString().split('T')[0]; labels7.push(d.getDate() + '/' + (d.getMonth()+1)); let abH = db_absensi.filter(a => a.date === dStr); let cTelat = 0; abH.forEach(a => { let p = hitungPoinAkhir(a); if(p.lateness > 0) cTelat++; }); dataHadir.push(abH.length); dataTelat.push(cTelat); }
             if(chartAttInstance) chartAttInstance.destroy();
             chartAttInstance = new Chart(document.getElementById('chart-attendance').getContext('2d'), { type: 'line', data: { labels: labels7, datasets: [{ label: 'Hadir', data: dataHadir, borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.1)', fill: true, tension: 0.4 }, { label: 'Terlambat', data: dataTelat, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks:{color:tColor}, grid:{color:gColor} }, y: { ticks:{color:tColor, stepSize:1}, grid:{color:gColor} } }, plugins: { legend: { labels: { color: tColor } } } } });
         }
@@ -961,7 +1064,28 @@
             if(filtered.length === 0) tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada absensi</td></tr>';
             else {
                 filtered.sort((a,b) => { let res = 0; if(absensiSortColumn === 'date') res = new Date(a.date) - new Date(b.date); else if(absensiSortColumn === 'name') { let eA = db_karyawan.find(k=>k.id==a.emp_id); let eB = db_karyawan.find(k=>k.id==b.emp_id); res = (eA?eA.name:'').localeCompare(eB?eB.name:''); } else if(absensiSortColumn === 'in') { res = (a.clock_in||'').localeCompare(b.clock_in||''); } else if(absensiSortColumn === 'out') { res = (a.clock_out||'').localeCompare(b.clock_out||''); } return absensiSortOrder === 'asc' ? res : -res; });
-                filtered.forEach(ab => { let emp = db_karyawan.find(k=>k.id==ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, tHari); totP+=p.pokok; totE+=p.ekstra; tbody.innerHTML += '<tr><td>'+ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td><td>'+(ab.clock_in||'-')+'</td><td>'+(ab.clock_out||'-')+'</td><td>'+tHari+'</td><td>'+p.pokok+'</td><td>'+p.ekstra+'</td></tr>'; });
+                            filtered.forEach(ab => { 
+                let emp = db_karyawan.find(k=>k.id==ab.emp_id); 
+                let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); 
+                let p = hitungPoinAkhir(ab); 
+                
+                totP+=p.pokok; totE+=p.ekstra; 
+                
+                // Beri efek warna merah jika poin hasil ketikan manual admin
+                let tdPokok = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.pokok+'</strong>' : p.pokok;
+                let tdEkstra = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.ekstra+'</strong>' : p.ekstra;
+            
+                tbody.innerHTML += '<tr>' +
+                    '<td>'+ab.date+'</td>' +
+                    '<td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td>' +
+                    '<td>'+(ab.clock_in||'-')+'</td>' +
+                    '<td>'+(ab.clock_out||'-')+'</td>' +
+                    '<td>'+tHari+'</td>' +
+                    '<td>'+tdPokok+'</td>' +
+                    '<td>'+tdEkstra+'</td>' +
+                    '<td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+ab.emp_id+', \''+ab.date+'\', \''+(emp?emp.name:'')+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td>' +
+                '</tr>'; 
+            });
             } document.getElementById('abs-tot-pokok').innerText = totP; document.getElementById('abs-tot-ekstra').innerText = totE;
         }
 
@@ -969,7 +1093,7 @@
         function renderPayroll() {
             let tbody = document.querySelector('#table-payroll tbody'); tbody.innerHTML = '';
             let payrollData = {}; db_karyawan.forEach(emp => payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 });
-            db_absensi.filter(ab => ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end).forEach(ab => { if(payrollData[ab.emp_id]) { let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday')); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } });
+            db_absensi.filter(...).forEach(ab => { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } });
             let empList = Object.keys(payrollData).map(k=>payrollData[k]).sort((a,b)=>a.emp.name.localeCompare(b.emp.name));
             let isBpjsMonth = false; let tempD = new Date(dateRangePayroll.start); let endD = new Date(dateRangePayroll.end); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); }
             empList.forEach(data => {
