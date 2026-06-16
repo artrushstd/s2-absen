@@ -125,9 +125,9 @@
         .input-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2); }
         
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-        .badge-active { background-color: rgba(52, 211, 153, 0.2); color: #059669; }
-        .badge-inactive { background-color: rgba(239, 68, 68, 0.2); color: #dc2626; }
-        .badge-warning { background-color: rgba(245, 158, 11, 0.2); color: #d97706; }
+        .badge-active { background-color: rgba(52, 211, 153, 0.15); color: #059669; border: 1px solid #34d399; }
+        .badge-inactive { background-color: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid #f87171; }
+        .badge-warning { background-color: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid #fbbf24; }
         body.dark-mode .badge-active { color: #34d399; }
         body.dark-mode .badge-inactive { color: #f87171; }
         body.dark-mode .badge-warning { color: #fbbf24; }
@@ -1129,10 +1129,22 @@
                     let emp = db_karyawan.find(k=>k.id==ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); 
                     let p = hitungPoinAkhir(ab); totP+=p.pokok; totE+=p.ekstra; 
                     
+                    // --- KODE BARU: UBAH TEKS JADI BADGE WARNA BER-BORDER ---
+                    let tHariBadge = '';
+                    if (tHari === 'Libur' || tHari === 'Hari Libur') {
+                        tHariBadge = '<span class="badge badge-warning">Libur</span>'; // Kuning
+                    } else if (tHari === 'Weekend') {
+                        tHariBadge = '<span class="badge badge-inactive">Weekend</span>'; // Merah
+                    } else {
+                        tHariBadge = '<span class="badge badge-active">Weekday</span>'; // Hijau
+                    }
+                    // ---------------------------------------------------------
+                    
                     let tdPokok = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.pokok+'</strong>' : p.pokok;
                     let tdEkstra = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.ekstra+'</strong>' : p.ekstra;
                     
-                    tbody.innerHTML += '<tr><td>'+ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td><td>'+(ab.clock_in||'-')+'</td><td>'+(ab.clock_out||'-')+'</td><td>'+tHari+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+ab.emp_id+', \''+ab.date+'\', \''+(emp?emp.name:'')+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
+                    // Perhatikan bagian +tHariBadge+ menggantikan +tHari+
+                    tbody.innerHTML += '<tr><td>'+ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td><td>'+(ab.clock_in||'-')+'</td><td>'+(ab.clock_out||'-')+'</td><td>'+tHariBadge+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+ab.emp_id+', \''+ab.date+'\', \''+(emp?emp.name:'')+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
                 });
             } document.getElementById('abs-tot-pokok').innerText = totP.toFixed(3); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(3);
         }
