@@ -118,6 +118,7 @@
         .btn-accent:hover { filter: brightness(0.9); }
         .btn-danger { background-color: var(--danger); color: var(--white); }
         .btn-warning { background-color: var(--warning); color: #fff; }
+        .btn-info { background-color: #3b82f6; color: #fff; }
         
         .filter-bar { display: flex; gap: 16px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
         .input-control { padding: 10px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background-color: var(--card-bg); color: var(--text-dark); }
@@ -159,6 +160,7 @@
 </head>
 <body>
 
+    <!-- SCREEN: LOGIN -->
     <div id="login-screen">
         <div class="login-card">
             <div style="font-size: 40px; color: var(--primary); margin-bottom: 10px;"><i class="fa-solid fa-fingerprint"></i></div>
@@ -172,7 +174,10 @@
         </div>
     </div>
 
+    <!-- WRAPPER: APLIKASI UTAMA -->
     <div id="app-wrapper" class="hidden">
+        
+        <!-- SIDEBAR -->
         <nav class="sidebar">
             <div class="sidebar-header"><i class="fa-solid fa-fingerprint"></i><span>Suharno 2</span></div>
             <ul class="nav-menu">
@@ -196,7 +201,7 @@
             </div>
 
             <div class="content-body">
-                <!-- ================== DASHBOARD ================== -->
+                <!-- ================== PAGE: DASHBOARD ================== -->
                 <div id="page-dashboard">
                     <div class="quick-actions">
                         <button class="btn btn-primary" onclick="switchPage('karyawan'); setTimeout(openKaryawanModal, 100);"><i class="fa-solid fa-user-plus"></i> Tambah Karyawan</button>
@@ -252,7 +257,7 @@
                     </div>
                 </div> 
 
-                <!-- ================== DATA KARYAWAN ================== -->
+                <!-- ================== PAGE: DATA KARYAWAN ================== -->
                 <div id="page-karyawan" class="hidden">
                     <div class="card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -271,7 +276,7 @@
                     </div>
                 </div>
 
-                <!-- ================== ABSENSI ================== -->
+                <!-- ================== PAGE: ABSENSI ================== -->
                 <div id="page-absensi" class="hidden">
                     <div class="card">
                         <div class="filter-bar">
@@ -299,13 +304,13 @@
                                         <th>Tipe Hari</th><th>Poin Pokok</th><th>Poin Ekstra</th><th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody><tr><td colspan="7" class="text-center">Terapkan filter tanggal untuk melihat data</td></tr></tbody>
+                                <tbody><tr><td colspan="8" class="text-center">Terapkan filter tanggal untuk melihat data</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ================== PAYROLL ================== -->
+                <!-- ================== PAGE: PAYROLL ================== -->
                 <div id="page-payroll" class="hidden">
                     <div class="card">
                         <div class="filter-bar">
@@ -323,7 +328,7 @@
                     </div>
                 </div>
 
-                <!-- ================== KASBON ================== -->
+                <!-- ================== PAGE: KASBON ================== -->
                 <div id="page-kasbon" class="hidden">
                     <div class="card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -350,22 +355,18 @@
         <div class="modal-content" style="width: 550px;">
             <div class="modal-header"><span id="modal-title-karyawan">Tambah Data Karyawan</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeKaryawanModal()"></i></div>
             <input type="hidden" id="edit-emp-id" value="">
-            
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>ID Mesin (PIN Fingerspot)</label><input type="number" id="new-emp-id" min="1" oninput="generateIdKaryawan()"></div>
                 <div class="form-group" style="flex: 1;"><label>ID Karyawan</label><input type="text" id="new-emp-id-karyawan" readonly style="background:var(--hover-bg); font-weight: bold; color: var(--primary);"></div>
             </div>
-            
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 2;"><label>Nama Karyawan</label><input type="text" id="new-emp-name"></div>
                 <div class="form-group" style="flex: 1;"><label>Tanggal Join</label><input type="date" id="new-emp-tgl-join" onchange="generateIdKaryawan()"></div>
             </div>
-            
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>Jabatan</label><input type="text" id="new-emp-jabatan"></div>
                 <div class="form-group" style="flex: 1;"><label>Status Karyawan</label><select id="new-emp-status-pegawai"><option value="Pegawai Tetap">Pegawai Tetap</option><option value="Part Time">Part Time</option></select></div>
             </div>
-
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>Gaji Harian (Pokok)</label><input type="number" id="new-emp-gaji-pokok" min="0"></div>
                 <div class="form-group" style="flex: 1;"><label>Tanggal Lahir</label><input type="date" id="new-emp-tgl-lahir"></div>
@@ -374,7 +375,6 @@
                 <div class="form-group" style="flex: 1;"><label>Status BPJS</label><select id="new-emp-bpjs"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div>
                 <div class="form-group" style="flex: 1;"><label>Status Aktif</label><select id="new-emp-status"><option value="true">Aktif Bekerja</option><option value="false">Non-Aktif / Resign</option></select></div>
             </div>
-            
             <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 10px;"><button class="btn btn-danger" onclick="closeKaryawanModal()">Batal</button><button class="btn btn-primary" onclick="saveKaryawan()" id="btn-save-karyawan">Buat Karyawan</button></div>
         </div>
     </div>
@@ -385,13 +385,11 @@
             <div class="modal-header"><span>Manajemen SP Karyawan</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeSPModal()"></i></div>
             <h3 id="sp-emp-name" style="margin-bottom: 5px;">Nama Karyawan</h3>
             <p style="margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">Status Saat Ini: <strong id="sp-current-status" style="color:var(--danger)">NONE</strong></p>
-            
             <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
                 <button class="btn btn-outline" id="btn-sp-1" onclick="assignSP('SP 1')">SP 1</button>
                 <button class="btn btn-outline" id="btn-sp-2" onclick="assignSP('SP 2')">SP 2</button>
                 <button class="btn btn-outline" id="btn-sp-3" onclick="assignSP('SP 3')">SP 3</button>
             </div>
-
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 15px;">
                 <button class="btn btn-accent" onclick="toggleEditSP()" id="btn-edit-sp"><i class="fa-solid fa-unlock"></i> Manual Override</button>
                 <button class="btn btn-outline" onclick="assignSP('NONE')">Reset ke NONE</button>
@@ -428,7 +426,7 @@
         </div>
     </div>
 
-    <!-- Modal Edit Absensi Harian -->
+    <!-- MODAL BARU: Edit Absensi Harian -->
     <div id="modal-edit-absensi" class="modal">
         <div class="modal-content" style="width: 400px;">
             <div class="modal-header">
@@ -437,25 +435,40 @@
             </div>
             <input type="hidden" id="edit-absensi-emp-id">
             <input type="hidden" id="edit-absensi-date">
-            
             <div class="form-group"><label>Nama Karyawan</label><input type="text" id="edit-absensi-name" readonly style="background:var(--hover-bg);"></div>
             <div class="form-group"><label>Tanggal Absensi</label><input type="text" id="edit-absensi-date-display" readonly style="background:var(--hover-bg); font-weight:bold;"></div>
-            
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>Poin Pokok (Manual)</label><input type="number" id="edit-absensi-pokok" step="0.00001"></div>
                 <div class="form-group" style="flex: 1;"><label>Poin Ekstra (Manual)</label><input type="number" id="edit-absensi-ekstra" step="0.00001"></div>
             </div>
             <small style="color: var(--danger); font-size: 11px;">*Kosongkan kolom di atas jika ingin kembali menggunakan poin perhitungan otomatis dari sistem.</small>
-            
             <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;">
                 <button class="btn btn-danger" onclick="closeEditAbsensiModal()">Batal</button>
                 <button class="btn btn-primary" onclick="saveEditAbsensi()" id="btn-save-edit-absensi">Simpan Poin</button>
             </div>
         </div>
     </div>
-    
-    <!-- Modal Kasbon Detail & Tambah Kasbon/Angsuran & Edit Payroll (Tidak Diubah) -->
-    <div id="modal-bonus" class="modal"><div class="modal-content" style="width: 500px;"><div class="modal-header"><span>Edit Detail Payroll</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeModal()"></i></div><div class="form-group"><label>Nama Karyawan</label><input type="text" id="modal-emp-name" readonly style="background:var(--hover-bg);"></div><div style="display: flex; gap: 16px;"><div class="form-group" style="flex: 1;"><label>Poin Pokok (Override)</label><input type="number" id="modal-poin-pokok" step="0.00001"></div><div class="form-group" style="flex: 1;"><label>Poin Ekstra (Override)</label><input type="number" id="modal-poin-ekstra" step="0.00001"></div></div><div class="form-group"><label>Gaji Pokok (Total Keseluruhan)</label><input type="number" id="modal-gaji-pokok"></div><div style="display: flex; gap: 16px;"><div class="form-group" style="flex: 1;"><label>Poin Bonus Tambahan</label><input type="number" id="modal-poin-bonus" step="0.1" min="0" value="0"></div><div class="form-group" style="flex: 1;"><label>Gaji Bonus (Rp)</label><input type="number" id="modal-gaji-bonus" min="0" value="0"></div></div><small style="color: var(--text-muted); font-size: 11px;">*Kosongkan Override jika ingin otomatis berdasar shift.</small><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="saveBonus()" id="btn-save-bonus">Simpan Detail</button></div></div></div>
+
+    <!-- Modal Edit Bonus Payroll -->
+    <div id="modal-bonus" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <div class="modal-header"><span>Edit Detail Payroll</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeModal()"></i></div>
+            <div class="form-group"><label>Nama Karyawan</label><input type="text" id="modal-emp-name" readonly style="background:var(--hover-bg);"></div>
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;"><label>Poin Pokok (Override Bulan)</label><input type="number" id="modal-poin-pokok" step="0.00001"></div>
+                <div class="form-group" style="flex: 1;"><label>Poin Ekstra (Override Bulan)</label><input type="number" id="modal-poin-ekstra" step="0.00001"></div>
+            </div>
+            <div class="form-group"><label>Gaji Pokok (Total Keseluruhan)</label><input type="number" id="modal-gaji-pokok"></div>
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;"><label>Poin Bonus Tambahan</label><input type="number" id="modal-poin-bonus" step="0.1" min="0" value="0"></div>
+                <div class="form-group" style="flex: 1;"><label>Gaji Bonus (Rp)</label><input type="number" id="modal-gaji-bonus" min="0" value="0"></div>
+            </div>
+            <small style="color: var(--text-muted); font-size: 11px;">*Kosongkan Override jika ingin otomatis berdasar akumulasi harian.</small>
+            <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="saveBonus()" id="btn-save-bonus">Simpan Detail</button></div>
+        </div>
+    </div>
+
+    <!-- Modal Kasbon Detail & Tambah Kasbon/Angsuran -->
     <div id="modal-kasbon-detail" class="modal"><div class="modal-content" style="width: 600px;"><div class="modal-header"><span id="kasbon-detail-title">Detail Kasbon</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeKasbonDetail()"></i></div><div style="margin-bottom: 16px; display:flex; justify-content: space-between; align-items:center;"><h4 style="margin: 0; font-size:15px;" id="kasbon-detail-sisa">Sisa: Rp 0</h4><button class="btn btn-primary" id="btn-tambah-angsuran" onclick="openTambahAngsuran()"><i class="fa-solid fa-plus"></i> Tambah Angsuran</button></div><div class="table-container" style="max-height: 400px; overflow-y:auto;"><table id="table-angsuran"><thead><tr><th>Tanggal Angsuran</th><th>Angsuran Ke</th><th>Nominal</th><th>Sisa Pinjaman</th></tr></thead><tbody></tbody></table></div></div></div>
     <div id="modal-tambah-angsuran" class="modal" style="z-index: 101;"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Tambah Angsuran Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahAngsuran()"></i></div><div class="form-group"><label>Jumlah Angsuran (Rp)</label><input type="number" id="input-nominal-angsuran" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahAngsuran()">Batal</button><button class="btn btn-primary" onclick="saveAngsuran()">Simpan Angsuran</button></div></div></div>
     <div id="modal-tambah-kasbon" class="modal"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Buat Kasbon Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahKasbon()"></i></div><div class="form-group"><label>Pilih Karyawan</label><select id="kasbon-emp-id"></select></div><div class="form-group"><label>Tanggal Pinjaman Masuk</label><input type="date" id="kasbon-tanggal"></div><div class="form-group"><label>Total Pinjaman (Rp)</label><input type="number" id="kasbon-total" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahKasbon()">Batal</button><button class="btn btn-primary" onclick="saveKasbon()">Buat Pinjaman</button></div></div></div>
@@ -575,7 +588,7 @@
             let shift = getShiftDetails(jamMasuk, tipeHari);
             let effectiveInNormal = inH;
             
-            // RUBAHAN: Toleransi keterlambatan 10 menit (10/60 jam)
+            // Toleransi 10 menit
             if (inH > shift.start && inH <= shift.start + (10/60)) effectiveInNormal = shift.start; 
 
             let lateness = Math.max(0, effectiveInNormal - shift.start);
@@ -595,85 +608,16 @@
             return { pokok: Number(poinPokok.toFixed(5)), ekstra: Number(poinEkstra.toFixed(5)), lateness: lateness, lemburBefore: lemburBefore, lemburAfter: lemburAfter, lemburTotal: totalLembur, shiftName: shift.name };
         }
 
-                // --- HELPER UNTUK OVERRIDE POIN MANUAL ---
+        // --- HELPER UNTUK OVERRIDE POIN MANUAL ---
         function hitungPoinAkhir(ab) {
             let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday');
-            let p = hitungPoinAkhir(ab);
-            
-            // Jika HR mengedit poin secara manual, timpa nilai otomatisnya
-            if (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) {
-                p.pokok = parseFloat(ab.poin_pokok_override);
-            }
-            if (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) {
-                p.ekstra = parseFloat(ab.poin_ekstra_override);
-            }
+            let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, tHari);
+            if (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) { p.pokok = parseFloat(ab.poin_pokok_override); }
+            if (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) { p.ekstra = parseFloat(ab.poin_ekstra_override); }
             return p;
         }
-        
-        // --- FUNGSI MODAL EDIT ABSENSI HARIAN ---
-        window.openEditAbsensiModal = function(empId, date, empName) {
-            let ab = db_absensi.find(a => a.emp_id == empId && a.date === date);
-            if(!ab) return;
-            
-            document.getElementById('edit-absensi-emp-id').value = empId;
-            document.getElementById('edit-absensi-date').value = date;
-            document.getElementById('edit-absensi-name').value = empName;
-            document.getElementById('edit-absensi-date-display').value = date;
-            
-            // Kalkulasi poin aslinya untuk dimunculkan sebagai referensi (placeholder)
-            let pCalc = hitungPoinUtuh(ab.clock_in, ab.clock_out, ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'));
-            
-            let inputPokok = document.getElementById('edit-absensi-pokok');
-            let inputEkstra = document.getElementById('edit-absensi-ekstra');
-            
-            inputPokok.placeholder = "Auto: " + pCalc.pokok;
-            inputEkstra.placeholder = "Auto: " + pCalc.ekstra;
-            
-            // Isi dengan nilai manual yang tersimpan di database (jika ada)
-            inputPokok.value = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? ab.poin_pokok_override : '';
-            inputEkstra.value = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? ab.poin_ekstra_override : '';
-            
-            document.getElementById('modal-edit-absensi').style.display = 'flex';
-        };
-        
-        window.closeEditAbsensiModal = function() {
-            document.getElementById('modal-edit-absensi').style.display = 'none';
-        };
-        
-        window.saveEditAbsensi = async function() {
-            let empId = document.getElementById('edit-absensi-emp-id').value;
-            let date = document.getElementById('edit-absensi-date').value;
-            let pokok = document.getElementById('edit-absensi-pokok').value;
-            let ekstra = document.getElementById('edit-absensi-ekstra').value;
-            
-            let payload = {
-                poin_pokok_override: pokok !== '' ? parseFloat(pokok) : null,
-                poin_ekstra_override: ekstra !== '' ? parseFloat(ekstra) : null
-            };
-            
-            let btn = document.getElementById('btn-save-edit-absensi');
-            btn.disabled = true; btn.innerText = "Menyimpan...";
-            
-            const { error } = await supabaseApp.from('absensi').update(payload).eq('emp_id', empId).eq('date', date);
-                
-            if(!error) {
-                // Update data di memory lokal
-                let ab = db_absensi.find(a => a.emp_id == empId && a.date === date);
-                if(ab) {
-                    ab.poin_pokok_override = payload.poin_pokok_override;
-                    ab.poin_ekstra_override = payload.poin_ekstra_override;
-                }
-                // Render ulang semua kalkulasi agar otomatis singkron
-                renderAbsensi(); renderPayroll(); renderDashboard();
-                closeEditAbsensiModal();
-            } else {
-                alert("Gagal menyimpan data: " + error.message);
-            }
-            btn.disabled = false; btn.innerText = "Simpan Poin";
-        }; 
 
         // ================== DATA KARYAWAN FUNCTIONS ==================
-        
         window.generateIdKaryawan = function() {
             let idMesin = document.getElementById('new-emp-id').value;
             let joinDate = document.getElementById('new-emp-tgl-join').value;
@@ -699,14 +643,12 @@
             let tbody = document.querySelector('#table-karyawan tbody'); tbody.innerHTML = '';
             if(db_karyawan.length === 0) { tbody.innerHTML = '<tr><td colspan="10" class="text-center">Data karyawan kosong</td></tr>'; return; }
             const todayDate = new Date();
-            
             db_karyawan.forEach(function(emp) {
                 let umurStr = '-';
                 if (emp.tanggal_lahir) {
                     const birthDate = new Date(emp.tanggal_lahir); let age = todayDate.getFullYear() - birthDate.getFullYear();
                     const m = todayDate.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) age--; umurStr = age + ' Thn';
                 }
-                
                 let activeSP = getActiveSPLevel(emp);
                 let spBadge = activeSP === 'NONE' ? '<span class="badge badge-active">NONE</span>' : '<span class="badge badge-inactive">'+activeSP+'</span>';
 
@@ -750,17 +692,10 @@
                 document.getElementById('new-emp-status').value = emp.is_active ? 'true' : 'false';
                 btnSave.innerText = "Simpan Perubahan";
             } else {
-                document.getElementById('edit-emp-id').value = ''; 
-                document.getElementById('new-emp-id').value = ''; 
-                document.getElementById('new-emp-id-karyawan').value = '';
-                document.getElementById('new-emp-name').value = ''; 
-                document.getElementById('new-emp-jabatan').value = ''; 
-                document.getElementById('new-emp-status-pegawai').value = 'Pegawai Tetap';
-                document.getElementById('new-emp-tgl-join').value = ''; 
-                document.getElementById('new-emp-tgl-lahir').value = ''; 
-                document.getElementById('new-emp-bpjs').value = 'Aktif'; 
-                document.getElementById('new-emp-gaji-pokok').value = ''; 
-                document.getElementById('new-emp-status').value = 'true';
+                document.getElementById('edit-emp-id').value = ''; document.getElementById('new-emp-id').value = ''; document.getElementById('new-emp-id-karyawan').value = '';
+                document.getElementById('new-emp-name').value = ''; document.getElementById('new-emp-jabatan').value = ''; document.getElementById('new-emp-status-pegawai').value = 'Pegawai Tetap';
+                document.getElementById('new-emp-tgl-join').value = ''; document.getElementById('new-emp-tgl-lahir').value = ''; document.getElementById('new-emp-bpjs').value = 'Aktif'; 
+                document.getElementById('new-emp-gaji-pokok').value = ''; document.getElementById('new-emp-status').value = 'true';
                 btnSave.innerText = "Buat Karyawan";
             }
             document.getElementById('modal-karyawan').style.display = 'flex'; 
@@ -771,20 +706,14 @@
         window.saveKaryawan = async function() {
             const btn = document.getElementById('btn-save-karyawan'); const editId = document.getElementById('edit-emp-id').value;
             const newEmp = { 
-                id: parseInt(document.getElementById('new-emp-id').value)||0, 
-                id_karyawan: document.getElementById('new-emp-id-karyawan').value,
-                name: document.getElementById('new-emp-name').value.trim(), 
-                jabatan: document.getElementById('new-emp-jabatan').value.trim(), 
-                status_pegawai: document.getElementById('new-emp-status-pegawai').value,
-                join_date: document.getElementById('new-emp-tgl-join').value, 
-                tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, 
-                status_bpjs: document.getElementById('new-emp-bpjs').value, 
-                gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value)||0, 
-                is_active: document.getElementById('new-emp-status').value === 'true' 
+                id: parseInt(document.getElementById('new-emp-id').value)||0, id_karyawan: document.getElementById('new-emp-id-karyawan').value,
+                name: document.getElementById('new-emp-name').value.trim(), jabatan: document.getElementById('new-emp-jabatan').value.trim(), 
+                status_pegawai: document.getElementById('new-emp-status-pegawai').value, join_date: document.getElementById('new-emp-tgl-join').value, 
+                tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, status_bpjs: document.getElementById('new-emp-bpjs').value, 
+                gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value)||0, is_active: document.getElementById('new-emp-status').value === 'true' 
             };
             if(!newEmp.id || !newEmp.name || !newEmp.join_date || !newEmp.tanggal_lahir || newEmp.gaji_per_poin_pokok <= 0) return alert("Isi form lengkap!");
             btn.disabled = true;
-            
             if(editId) {
                 const { data, error } = await supabaseApp.from('karyawan').update(newEmp).eq('id', editId).select();
                 if(!error) { let idx = db_karyawan.findIndex(function(k) { return k.id == editId; }); if(idx>-1 && data.length) db_karyawan[idx] = data[0]; else fetchDataSupabase(); closeKaryawanModal(); alert("Berhasil."); }
@@ -798,8 +727,7 @@
 
         window.deleteKaryawan = async function(empId, empName) {
             let konfirmasi = confirm('Apakah Anda yakin ingin menghapus data karyawan: ' + empName + '?\n\nPeringatan: Jika karyawan ini sudah memiliki data absensi atau kasbon, penghapusan mungkin akan ditolak oleh database.');
-            if (!konfirmasi) return;
-            document.getElementById('loading-indicator').style.display = 'inline-block';
+            if (!konfirmasi) return; document.getElementById('loading-indicator').style.display = 'inline-block';
             try {
                 const { error } = await supabaseApp.from('karyawan').delete().eq('id', empId);
                 if (error) { alert('Gagal menghapus karyawan.\n\nSaran: Lebih aman ubah "Status Aktif" menjadi "Non-Aktif" saja.'); } 
@@ -810,48 +738,32 @@
 
         // --- SISTEM SP KARYAWAN ---
         let currentSPEmpId = null; let isSPEditMode = false;
-        
         window.openSPModal = function(empId) {
             currentSPEmpId = empId; isSPEditMode = false;
             let emp = db_karyawan.find(e => e.id === empId); if(!emp) return;
             document.getElementById('sp-emp-name').innerText = emp.name;
-            
-            let spLevel = getActiveSPLevel(emp);
-            document.getElementById('sp-current-status').innerText = spLevel;
-            updateSPButtonsUI(spLevel);
-            document.getElementById('modal-sp').style.display = 'flex';
+            let spLevel = getActiveSPLevel(emp); document.getElementById('sp-current-status').innerText = spLevel;
+            updateSPButtonsUI(spLevel); document.getElementById('modal-sp').style.display = 'flex';
         }
-
         window.closeSPModal = function() { document.getElementById('modal-sp').style.display = 'none'; }
-
         function updateSPButtonsUI(level) {
             let b1 = document.getElementById('btn-sp-1'); let b2 = document.getElementById('btn-sp-2'); let b3 = document.getElementById('btn-sp-3');
-            b1.disabled = false; b2.disabled = false; b3.disabled = false;
-            b1.style.background = ''; b2.style.background = ''; b3.style.background = '';
-            b1.style.color = ''; b2.style.color = ''; b3.style.color = '';
-
+            b1.disabled = false; b2.disabled = false; b3.disabled = false; b1.style.background = ''; b2.style.background = ''; b3.style.background = ''; b1.style.color = ''; b2.style.color = ''; b3.style.color = '';
             if (!isSPEditMode) {
                 if (level === 'SP 1') { b1.disabled = true; b1.style.background = 'var(--danger)'; b1.style.color = '#fff'; }
                 if (level === 'SP 2') { b1.disabled = true; b2.disabled = true; b2.style.background = 'var(--danger)'; b2.style.color = '#fff'; }
                 if (level === 'SP 3') { b1.disabled = true; b2.disabled = true; b3.disabled = true; b3.style.background = 'var(--danger)'; b3.style.color = '#fff'; }
             }
         }
-
         window.toggleEditSP = function() {
             isSPEditMode = !isSPEditMode; let btn = document.getElementById('btn-edit-sp');
             if(isSPEditMode) { btn.innerHTML = '<i class="fa-solid fa-lock"></i> Kunci Override'; btn.classList.add('btn-danger'); btn.classList.remove('btn-accent'); } 
             else { btn.innerHTML = '<i class="fa-solid fa-unlock"></i> Manual Override'; btn.classList.add('btn-accent'); btn.classList.remove('btn-danger'); }
             let emp = db_karyawan.find(e => e.id === currentSPEmpId); updateSPButtonsUI(getActiveSPLevel(emp));
         }
-
         window.assignSP = async function(level) {
-            if(!currentSPEmpId) return;
-            let confirmMsg = level === 'NONE' ? "Reset SP karyawan ini ke NONE?" : "Yakin berikan " + level + "?";
-            if(!confirm(confirmMsg)) return;
-
-            let today = new Date().toISOString().split('T')[0];
-            let payload = { sp_level: level, sp_date: level === 'NONE' ? null : today };
-
+            if(!currentSPEmpId) return; let confirmMsg = level === 'NONE' ? "Reset SP karyawan ini ke NONE?" : "Yakin berikan " + level + "?"; if(!confirm(confirmMsg)) return;
+            let today = new Date().toISOString().split('T')[0]; let payload = { sp_level: level, sp_date: level === 'NONE' ? null : today };
             const { error } = await supabaseApp.from('karyawan').update(payload).eq('id', currentSPEmpId);
             if(!error) { let emp = db_karyawan.find(e => e.id === currentSPEmpId); emp.sp_level = payload.sp_level; emp.sp_date = payload.sp_date; renderKaryawan(); closeSPModal(); } 
             else { alert("Gagal update SP: " + error.message); }
@@ -861,140 +773,69 @@
         window.printSurat = function(empId, type) {
             let emp = db_karyawan.find(e => e.id === empId); if(!emp) return;
             let todayIndo = formatTanggalIndo(new Date()); let joinIndo = formatTanggalIndo(emp.join_date);
-            
-            let header = `
-                <div style="text-align:center; border-bottom:3px solid #000; padding-bottom:15px; margin-bottom:20px;">
-                    <h1 style="margin:0; font-size:24px; color:#1f497d;">SUHARNO 2</h1>
-                    <p style="margin:5px 0 0 0; font-size:14px; color:#555;">Jl. Contoh Perusahaan No. 123, Kota Yogyakarta</p>
-                    <p style="margin:0; font-size:13px; color:#555;">Telp: (0274) 123456 | Email: hrd@suharno2.com</p>
-                </div>
-            `;
-            let title = type === 'aktif' ? 'SURAT KETERANGAN KERJA' : 'SURAT PENGALAMAN KERJA';
-            let suratNo = type === 'aktif' ? 'SKK' : 'SPK';
-            let bodyText = '';
-
+            let header = '<div style="text-align:center; border-bottom:3px solid #000; padding-bottom:15px; margin-bottom:20px;"><h1 style="margin:0; font-size:24px; color:#1f497d;">SUHARNO 2</h1><p style="margin:5px 0 0 0; font-size:14px; color:#555;">Jl. Contoh Perusahaan No. 123, Kota Yogyakarta</p><p style="margin:0; font-size:13px; color:#555;">Telp: (0274) 123456 | Email: hrd@suharno2.com</p></div>';
+            let title = type === 'aktif' ? 'SURAT KETERANGAN KERJA' : 'SURAT PENGALAMAN KERJA'; let suratNo = type === 'aktif' ? 'SKK' : 'SPK'; let bodyText = '';
             if (type === 'aktif') {
-                bodyText = `
-                    <p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p>
-                    <table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;">
-                        <tr><td style="width:150px;">Nama</td><td>: ${emp.name}</td></tr>
-                        <tr><td>ID Karyawan</td><td>: ${emp.id_karyawan || '-'}</td></tr>
-                        <tr><td>Jabatan</td><td>: ${emp.jabatan || '-'}</td></tr>
-                        <tr><td>Status Pegawai</td><td>: ${emp.status_pegawai || 'Pegawai Tetap'}</td></tr>
-                    </table>
-                    <p style="text-align: justify;">Adalah benar merupakan karyawan kami yang telah bekerja sejak tanggal <strong>${joinIndo}</strong> hingga saat surat ini dikeluarkan dan masih berstatus aktif bekerja di perusahaan kami.</p>
-                    <p style="text-align: justify;">Surat keterangan ini dibuat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya oleh pihak yang berkepentingan.</p>
-                `;
+                bodyText = '<p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p><table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;"><tr><td style="width:150px;">Nama</td><td>: '+emp.name+'</td></tr><tr><td>ID Karyawan</td><td>: '+(emp.id_karyawan || '-')+'</td></tr><tr><td>Jabatan</td><td>: '+(emp.jabatan || '-')+'</td></tr><tr><td>Status Pegawai</td><td>: '+(emp.status_pegawai || 'Pegawai Tetap')+'</td></tr></table><p style="text-align: justify;">Adalah benar merupakan karyawan kami yang telah bekerja sejak tanggal <strong>'+joinIndo+'</strong> hingga saat surat ini dikeluarkan dan masih berstatus aktif bekerja di perusahaan kami.</p><p style="text-align: justify;">Surat keterangan ini dibuat dengan sebenar-benarnya untuk dipergunakan sebagaimana mestinya oleh pihak yang berkepentingan.</p>';
             } else {
-                bodyText = `
-                    <p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p>
-                    <table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;">
-                        <tr><td style="width:150px;">Nama</td><td>: ${emp.name}</td></tr>
-                        <tr><td>ID Karyawan</td><td>: ${emp.id_karyawan || '-'}</td></tr>
-                        <tr><td>Jabatan Terakhir</td><td>: ${emp.jabatan || '-'}</td></tr>
-                    </table>
-                    <p style="text-align: justify;">Telah bekerja di perusahaan kami terhitung sejak tanggal <strong>${joinIndo}</strong> hingga tanggal <strong>${todayIndo}</strong>.</p>
-                    <p style="text-align: justify;">Kami mengucapkan banyak terima kasih atas usaha, dedikasi, serta kontribusi yang telah diberikan kepada perusahaan selama masa kerja. Kami berharap kesuksesan untuk karir Saudara/i di masa mendatang.</p>
-                    <p style="text-align: justify;">Demikian surat pengalaman kerja (Paklaring) ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>
-                `;
+                bodyText = '<p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p><table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;"><tr><td style="width:150px;">Nama</td><td>: '+emp.name+'</td></tr><tr><td>ID Karyawan</td><td>: '+(emp.id_karyawan || '-')+'</td></tr><tr><td>Jabatan Terakhir</td><td>: '+(emp.jabatan || '-')+'</td></tr></table><p style="text-align: justify;">Telah bekerja di perusahaan kami terhitung sejak tanggal <strong>'+joinIndo+'</strong> hingga tanggal <strong>'+todayIndo+'</strong>.</p><p style="text-align: justify;">Kami mengucapkan banyak terima kasih atas usaha, dedikasi, serta kontribusi yang telah diberikan kepada perusahaan selama masa kerja. Kami berharap kesuksesan untuk karir Saudara/i di masa mendatang.</p><p style="text-align: justify;">Demikian surat pengalaman kerja (Paklaring) ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>';
             }
-
-            let html = `
-                <html>
-                <head>
-                    <title>${title} - ${emp.name}</title>
-                    <style>
-                        body { font-family: 'Times New Roman', Times, serif; padding: 40px 60px; color: #000; line-height:1.6; font-size:16px; }
-                        .surat-title { text-align: center; margin-bottom: 30px; }
-                        .surat-title h2 { text-decoration: underline; margin: 0; font-size: 20px; font-weight: bold; }
-                        .surat-title p { margin: 5px 0 0 0; font-size: 14px; }
-                        .signature { margin-top: 60px; text-align: right; }
-                        .signature div { display: inline-block; text-align: center; }
-                    </style>
-                </head>
-                <body onload="window.print();">
-                    ${header}
-                    <div class="surat-title">
-                        <h2>${title}</h2>
-                        <p>No: 0${emp.id}/${suratNo}/HRD/${new Date().getMonth()+1}/${new Date().getFullYear()}</p>
-                    </div>
-                    ${bodyText}
-                    <div class="signature">
-                        <div>
-                            <p>Yogyakarta, ${todayIndo}</p>
-                            <br><br><br><br>
-                            <p style="text-decoration: underline; font-weight:bold; margin-bottom:0;">HRD Manager</p>
-                            <p style="margin:0;">Suharno 2</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `;
+            let html = '<html><head><title>'+title+' - '+emp.name+'</title><style>body { font-family: "Times New Roman", Times, serif; padding: 40px 60px; color: #000; line-height:1.6; font-size:16px; } .surat-title { text-align: center; margin-bottom: 30px; } .surat-title h2 { text-decoration: underline; margin: 0; font-size: 20px; font-weight: bold; } .surat-title p { margin: 5px 0 0 0; font-size: 14px; } .signature { margin-top: 60px; text-align: right; } .signature div { display: inline-block; text-align: center; }</style></head><body onload="window.print();">'+header+'<div class="surat-title"><h2>'+title+'</h2><p>No: 0'+emp.id+'/'+suratNo+'/HRD/'+(new Date().getMonth()+1)+'/'+new Date().getFullYear()+'</p></div>'+bodyText+'<div class="signature"><div><p>Yogyakarta, '+todayIndo+'</p><br><br><br><br><p style="text-decoration: underline; font-weight:bold; margin-bottom:0;">HRD Manager</p><p style="margin:0;">Suharno 2</p></div></div></body></html>';
             let win = window.open('', '_blank'); win.document.write(html); win.document.close();
         }
 
         window.openPrintKaryawanModal = function() { document.getElementById('modal-print-karyawan').style.display = 'flex'; };
         window.closePrintKaryawanModal = function() { document.getElementById('modal-print-karyawan').style.display = 'none'; };
         window.printKaryawanData = function() {
-            var showId = document.getElementById('print-col-id').checked;
-            var showIdK = document.getElementById('print-col-id-karyawan').checked;
-            var showJoin = document.getElementById('print-col-join').checked;
-            var showJabatan = document.getElementById('print-col-jabatan').checked;
-            var showPegawai = document.getElementById('print-col-pegawai').checked;
-            var showSP = document.getElementById('print-col-sp').checked;
-            var showBpjs = document.getElementById('print-col-bpjs').checked;
-
+            var showId = document.getElementById('print-col-id').checked; var showIdK = document.getElementById('print-col-id-karyawan').checked; var showJoin = document.getElementById('print-col-join').checked; var showJabatan = document.getElementById('print-col-jabatan').checked; var showPegawai = document.getElementById('print-col-pegawai').checked; var showSP = document.getElementById('print-col-sp').checked; var showBpjs = document.getElementById('print-col-bpjs').checked;
             var activeKaryawan = db_karyawan.filter(function(k) { return k.is_active === true; });
             var html = '<html><head><title>Print Data Karyawan</title><style>body{font-family:"Segoe UI",Arial,sans-serif;padding:20px;color:#333;}.header{text-align:center;margin-bottom:25px;}.header h2{margin:0;color:#1f497d;font-size:22px;}.header p{margin:5px 0 0 0;font-size:14px;color:#555;}table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px;}th{background-color:#1f497d;color:white;border:1px solid #1f497d;padding:10px;font-weight:bold;text-align:left;}td{border:1px solid #ccc;padding:8px 12px;color:#333;}tr:nth-child(even){background-color:#f9fbfd;}</style></head><body onload="window.print();"><div class="header"><h2>Daftar Database Karyawan Aktif</h2><p>Suharno 2 Database System</p></div><table><thead><tr>';
-            
-            if (showId) html += '<th>ID Mesin</th>';
-            if (showIdK) html += '<th>ID Karyawan</th>';
-            if (showJoin) html += '<th>Tanggal Join</th>';
-            html += '<th>Nama Karyawan</th>';
-            if (showJabatan) html += '<th>Jabatan</th>';
-            if (showPegawai) html += '<th>Tipe Pegawai</th>';
-            if (showSP) html += '<th>Status SP</th>';
-            if (showBpjs) html += '<th>Status BPJS</th>';
-            html += '</tr></thead><tbody>';
-
+            if (showId) html += '<th>ID Mesin</th>'; if (showIdK) html += '<th>ID Karyawan</th>'; if (showJoin) html += '<th>Tanggal Join</th>'; html += '<th>Nama Karyawan</th>'; if (showJabatan) html += '<th>Jabatan</th>'; if (showPegawai) html += '<th>Tipe Pegawai</th>'; if (showSP) html += '<th>Status SP</th>'; if (showBpjs) html += '<th>Status BPJS</th>'; html += '</tr></thead><tbody>';
             if (activeKaryawan.length === 0) { html += '<tr><td colspan="10" style="text-align:center;">Tidak ada data</td></tr>'; } 
-            else {
-                activeKaryawan.forEach(function(emp) {
-                    html += '<tr>';
-                    if (showId) html += '<td>' + emp.id + '</td>';
-                    if (showIdK) html += '<td><strong>' + (emp.id_karyawan || '-') + '</strong></td>';
-                    if (showJoin) html += '<td>' + (emp.join_date || '-') + '</td>';
-                    html += '<td><strong>' + emp.name + '</strong></td>';
-                    if (showJabatan) html += '<td>' + (emp.jabatan || '-') + '</td>';
-                    if (showPegawai) html += '<td>' + (emp.status_pegawai || 'Pegawai Tetap') + '</td>';
-                    if (showSP) html += '<td>' + getActiveSPLevel(emp) + '</td>';
-                    if (showBpjs) html += '<td>' + emp.status_bpjs + '</td>';
-                    html += '</tr>';
-                });
-            }
-            html += '</tbody></table></body></html>';
-            var win = window.open('', '_blank'); win.document.write(html); win.document.close();
-            closePrintKaryawanModal();
+            else { activeKaryawan.forEach(function(emp) { html += '<tr>'; if (showId) html += '<td>' + emp.id + '</td>'; if (showIdK) html += '<td><strong>' + (emp.id_karyawan || '-') + '</strong></td>'; if (showJoin) html += '<td>' + (emp.join_date || '-') + '</td>'; html += '<td><strong>' + emp.name + '</strong></td>'; if (showJabatan) html += '<td>' + (emp.jabatan || '-') + '</td>'; if (showPegawai) html += '<td>' + (emp.status_pegawai || 'Pegawai Tetap') + '</td>'; if (showSP) html += '<td>' + getActiveSPLevel(emp) + '</td>'; if (showBpjs) html += '<td>' + emp.status_bpjs + '</td>'; html += '</tr>'; }); }
+            html += '</tbody></table></body></html>'; var win = window.open('', '_blank'); win.document.write(html); win.document.close(); closePrintKaryawanModal();
+        };
+
+        // --- FUNGSI EDIT POIN ABSENSI MANUAL ---
+        window.openEditAbsensiModal = function(empId, date, empName) {
+            let ab = db_absensi.find(a => a.emp_id == empId && a.date === date); if(!ab) return;
+            document.getElementById('edit-absensi-emp-id').value = empId; document.getElementById('edit-absensi-date').value = date; document.getElementById('edit-absensi-name').value = empName; document.getElementById('edit-absensi-date-display').value = date;
+            let pCalc = hitungPoinUtuh(ab.clock_in, ab.clock_out, ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'));
+            let inputPokok = document.getElementById('edit-absensi-pokok'); let inputEkstra = document.getElementById('edit-absensi-ekstra');
+            inputPokok.placeholder = "Auto: " + pCalc.pokok; inputEkstra.placeholder = "Auto: " + pCalc.ekstra;
+            inputPokok.value = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? ab.poin_pokok_override : ''; inputEkstra.value = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? ab.poin_ekstra_override : '';
+            document.getElementById('modal-edit-absensi').style.display = 'flex';
+        };
+        window.closeEditAbsensiModal = function() { document.getElementById('modal-edit-absensi').style.display = 'none'; };
+        window.saveEditAbsensi = async function() {
+            let empId = document.getElementById('edit-absensi-emp-id').value; let date = document.getElementById('edit-absensi-date').value; let pokok = document.getElementById('edit-absensi-pokok').value; let ekstra = document.getElementById('edit-absensi-ekstra').value;
+            let payload = { poin_pokok_override: pokok !== '' ? parseFloat(pokok) : null, poin_ekstra_override: ekstra !== '' ? parseFloat(ekstra) : null };
+            let btn = document.getElementById('btn-save-edit-absensi'); btn.disabled = true; btn.innerText = "Menyimpan...";
+            const { error } = await supabaseApp.from('absensi').update(payload).eq('emp_id', empId).eq('date', date);
+            if(!error) { let ab = db_absensi.find(a => a.emp_id == empId && a.date === date); if(ab) { ab.poin_pokok_override = payload.poin_pokok_override; ab.poin_ekstra_override = payload.poin_ekstra_override; } renderAbsensi(); renderPayroll(); renderDashboard(); closeEditAbsensiModal(); } 
+            else { alert("Gagal menyimpan data: " + error.message); }
+            btn.disabled = false; btn.innerText = "Simpan Poin";
         };
 
         // Dashboard & Analytics & Payroll Logic
         window.applyDashboardFilter = function() { filterDashboard.date = document.getElementById('dash-filter-date').value || todayStr; filterDashboard.shift = document.getElementById('dash-filter-shift').value; renderDashboard(); };
         window.exportDashboardCSV = function() { let csv = "Nama,Shift,Check-In,Check-Out,Status,Jam Lembur\n"; let trs = document.querySelectorAll('#dash-table-today tbody tr'); if(trs.length === 1 && trs[0].innerText.includes('Memuat')) return; trs.forEach(function(tr) { let tds = tr.querySelectorAll('td'); if(tds.length < 6) return; csv += '"' + tds[0].innerText + '","' + tds[1].innerText + '","' + tds[2].innerText + '","' + tds[3].innerText + '","' + tds[4].innerText.trim() + '","' + tds[5].innerText + '"\n'; }); let blob = new Blob([csv], { type: 'text/csv' }); let url = window.URL.createObjectURL(blob); let a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'Laporan_' + filterDashboard.date + '.csv'); a.click(); };
         
-        function renderDashboard() { /* Logika tidak diubah dari versi lama yang berjalan mulus */
+        function renderDashboard() {
             let activeEmps = db_karyawan.filter(function(k) { return k.is_active; }); document.getElementById('dash-total-emp').innerText = activeEmps.length;
             let absensiFiltered = db_absensi.filter(function(a) { return a.date === filterDashboard.date; });
             let hadirList = []; let lateList = []; let overtimeList = []; let dashLembur = 0;
             absensiFiltered.forEach(function(ab) {
                 let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); if(!emp) return;
                 let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let shiftName = '-'; let st = getShiftDetails(ab.clock_in || '00:00', tHari); shiftName = st.name;
-                if(filterDashboard.shift && filterDashboard.shift !== shiftName) return; hadirList.push(ab); let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, tHari); dashLembur += p.lemburTotal;
+                if(filterDashboard.shift && filterDashboard.shift !== shiftName) return; hadirList.push(ab); 
+                let p = hitungPoinAkhir(ab); dashLembur += p.lemburTotal;
                 if(p.lateness > 0) lateList.push({ emp: emp.name, shift: p.shiftName, in: ab.clock_in, lateness: p.lateness });
                 if(p.lemburTotal > 0) { let estGaji = (emp.gaji_per_poin_pokok || 0) * ((p.ekstra / 8) * 2); overtimeList.push({ emp: emp.name, shift: p.shiftName, out: ab.clock_out, total: p.lemburTotal, est: estGaji }); }
             });
             document.getElementById('dash-hadir').innerText = hadirList.length; document.getElementById('dash-belum').innerText = filterDashboard.shift ? "-" : (activeEmps.length - hadirList.length); document.getElementById('dash-lembur').innerText = formatHours(dashLembur);
             
-            // Payroll Estimation Logic for Dashboard (sama persis dengan yang lama)
+            // Payroll Estimation Logic for Dashboard
             let mStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
             let mEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
             let absensiMonth = db_absensi.filter(a => a.date >= mStart && a.date <= mEnd);
@@ -1024,7 +865,7 @@
             // Today Table
             let tbodyT = document.querySelector('#dash-table-today tbody'); tbodyT.innerHTML = '';
             if(hadirList.length === 0) tbodyT.innerHTML = '<tr><td colspan="6" class="text-center">Tidak ada absen</td></tr>';
-            hadirList.forEach(ab => { let emp = db_karyawan.find(k => k.id == ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinUtuh(ab.clock_in, ab.clock_out, tHari); let badge = p.lateness > 0 ? '<span class="badge badge-inactive">Telat</span>' : '<span class="badge badge-active">Tepat Waktu</span>'; if(!ab.clock_out) badge = '<span class="badge badge-warning">Sedang Bekerja</span>'; tbodyT.innerHTML += '<tr><td>' + (emp ? emp.name : ab.emp_id) + '</td><td>' + p.shiftName + '</td><td>' + (ab.clock_in || '-') + '</td><td>' + (ab.clock_out || '-') + '</td><td>' + badge + '</td><td>' + formatHours(p.lemburTotal) + '</td></tr>'; });
+            hadirList.forEach(ab => { let emp = db_karyawan.find(k => k.id == ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinAkhir(ab); let badge = p.lateness > 0 ? '<span class="badge badge-inactive">Telat</span>' : '<span class="badge badge-active">Tepat Waktu</span>'; if(!ab.clock_out) badge = '<span class="badge badge-warning">Sedang Bekerja</span>'; tbodyT.innerHTML += '<tr><td>' + (emp ? emp.name : ab.emp_id) + '</td><td>' + p.shiftName + '</td><td>' + (ab.clock_in || '-') + '</td><td>' + (ab.clock_out || '-') + '</td><td>' + badge + '</td><td>' + formatHours(p.lemburTotal) + '</td></tr>'; });
 
             let tbodyL = document.querySelector('#dash-table-late tbody'); tbodyL.innerHTML = ''; if(lateList.length===0) tbodyL.innerHTML='<tr><td colspan="4" class="text-center">Semua tepat waktu</td></tr>';
             lateList.forEach(l => tbodyL.innerHTML+='<tr><td>'+l.emp+'</td><td>'+l.shift+'</td><td>'+l.in+'</td><td style="color:var(--danger); font-weight:600;">'+formatHours(l.lateness)+'</td></tr>');
@@ -1052,48 +893,35 @@
             if(pageId === 'dashboard') renderDashboard();
         };
 
-        // --- Sisanya Adalah Fungsi Bawaan (Absensi, Payroll, Kasbon) tanpa perubahan logika agar tetap lancar ---
         window.filterAbsensi = function() { let range = document.getElementById('date-range-absensi').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangeAbsensi.start = range[0]; dateRangeAbsensi.end = range[1] || range[0]; } renderAbsensi(); };
         window.clickNameAbsensi = function(name) { currentAbsensiFilterName = name; document.getElementById('btn-reset-absensi').style.display = 'inline-flex'; renderAbsensi(); };
         window.resetFilterAbsensi = function() { currentAbsensiFilterName = null; document.getElementById('btn-reset-absensi').style.display = 'none'; renderAbsensi(); };
         window.toggleSortAbsensi = function(col) { if(absensiSortColumn === col) absensiSortOrder = absensiSortOrder === 'asc' ? 'desc' : 'asc'; else { absensiSortColumn = col; absensiSortOrder = 'asc'; } renderAbsensi(); };
+        
         function renderAbsensi() {
             let cols = ['date', 'name', 'in', 'out']; cols.forEach(c => { let icon = document.getElementById('sort-icon-' + c); if (icon) { icon.className = absensiSortColumn === c ? (absensiSortOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = absensiSortColumn === c ? "var(--primary)" : "var(--text-muted)"; } });
             let tbody = document.querySelector('#table-absensi tbody'); tbody.innerHTML = ''; let totP = 0; let totE = 0;
             let filtered = db_absensi.filter(ab => { let emp = db_karyawan.find(k => k.id == ab.emp_id); let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; });
-            if(filtered.length === 0) tbody.innerHTML = '<tr><td colspan="7" class="text-center">Tidak ada absensi</td></tr>';
+            if(filtered.length === 0) tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada absensi</td></tr>';
             else {
                 filtered.sort((a,b) => { let res = 0; if(absensiSortColumn === 'date') res = new Date(a.date) - new Date(b.date); else if(absensiSortColumn === 'name') { let eA = db_karyawan.find(k=>k.id==a.emp_id); let eB = db_karyawan.find(k=>k.id==b.emp_id); res = (eA?eA.name:'').localeCompare(eB?eB.name:''); } else if(absensiSortColumn === 'in') { res = (a.clock_in||'').localeCompare(b.clock_in||''); } else if(absensiSortColumn === 'out') { res = (a.clock_out||'').localeCompare(b.clock_out||''); } return absensiSortOrder === 'asc' ? res : -res; });
-                            filtered.forEach(ab => { 
-                let emp = db_karyawan.find(k=>k.id==ab.emp_id); 
-                let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); 
-                let p = hitungPoinAkhir(ab); 
-                
-                totP+=p.pokok; totE+=p.ekstra; 
-                
-                // Beri efek warna merah jika poin hasil ketikan manual admin
-                let tdPokok = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.pokok+'</strong>' : p.pokok;
-                let tdEkstra = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.ekstra+'</strong>' : p.ekstra;
-            
-                tbody.innerHTML += '<tr>' +
-                    '<td>'+ab.date+'</td>' +
-                    '<td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td>' +
-                    '<td>'+(ab.clock_in||'-')+'</td>' +
-                    '<td>'+(ab.clock_out||'-')+'</td>' +
-                    '<td>'+tHari+'</td>' +
-                    '<td>'+tdPokok+'</td>' +
-                    '<td>'+tdEkstra+'</td>' +
-                    '<td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+ab.emp_id+', \''+ab.date+'\', \''+(emp?emp.name:'')+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td>' +
-                '</tr>'; 
-            });
-            } document.getElementById('abs-tot-pokok').innerText = totP; document.getElementById('abs-tot-ekstra').innerText = totE;
+                filtered.forEach(ab => { 
+                    let emp = db_karyawan.find(k=>k.id==ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); 
+                    let p = hitungPoinAkhir(ab); totP+=p.pokok; totE+=p.ekstra; 
+                    
+                    let tdPokok = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.pokok+'</strong>' : p.pokok;
+                    let tdEkstra = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.ekstra+'</strong>' : p.ekstra;
+                    
+                    tbody.innerHTML += '<tr><td>'+ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td><td>'+(ab.clock_in||'-')+'</td><td>'+(ab.clock_out||'-')+'</td><td>'+tHari+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+ab.emp_id+', \''+ab.date+'\', \''+(emp?emp.name:'')+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
+                });
+            } document.getElementById('abs-tot-pokok').innerText = totP.toFixed(3); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(3);
         }
 
         window.filterPayroll = function() { let range = document.getElementById('date-range-payroll').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangePayroll.start = range[0]; dateRangePayroll.end = range[1] || range[0]; } renderPayroll(); };
         function renderPayroll() {
             let tbody = document.querySelector('#table-payroll tbody'); tbody.innerHTML = '';
             let payrollData = {}; db_karyawan.forEach(emp => payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 });
-            db_absensi.filter(...).forEach(ab => { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } });
+            db_absensi.filter(ab => ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end).forEach(ab => { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } });
             let empList = Object.keys(payrollData).map(k=>payrollData[k]).sort((a,b)=>a.emp.name.localeCompare(b.emp.name));
             let isBpjsMonth = false; let tempD = new Date(dateRangePayroll.start); let endD = new Date(dateRangePayroll.end); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); }
             empList.forEach(data => {
@@ -1111,11 +939,22 @@
             db_kasbon.forEach(k => { let emp = db_karyawan.find(e => e.id == k.emp_id); let totA = 0; db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal)); let sisa = parseFloat(k.total_pinjaman) - totA; tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge '+(sisa<=0?'badge-active':'badge-inactive')+' clickable-name" onclick="openKasbonDetail('+k.id+')">'+(sisa<=0?'LUNAS':formatRp(sisa))+'</span></td></tr>'; });
         }
 
-        // Jalankan App
+        // Tipe Hari, Kasbon, etc
+        window.openTipeHariModal = function() { document.getElementById('modal-tipe-hari').style.display = 'flex'; }; window.closeTipeHariModal = function() { document.getElementById('modal-tipe-hari').style.display = 'none'; }; window.saveTipeHari = async function() { const date = document.getElementById('modal-tipe-date').value; const tipe = document.getElementById('modal-tipe-select').value; if(!date) return; const btn = document.getElementById('btn-save-tipe'); btn.innerText = "Menyimpan..."; btn.disabled = true; let is_weekend = (tipe === 'Weekend' || tipe === 'Libur'); const { error } = await supabaseApp.from('absensi').update({ is_weekend: is_weekend, tipe_hari: tipe }).eq('date', date); if(!error) { db_absensi.forEach(function(ab) { if(ab.date === date) { ab.is_weekend = is_weekend; ab.tipe_hari = tipe; }}); renderAbsensi(); renderPayroll(); closeTipeHariModal(); alert("Berhasil."); } btn.innerText = "Ubah"; btn.disabled = false; };
+        let currentEditEmpId = null; window.openBonusModal = function(empId, empName, calcPokok, calcEkstra, calcGajiPokok) { currentEditEmpId = empId; document.getElementById('modal-emp-name').value = empName; let bonusKey = empId + "_" + dateRangePayroll.start; let b = db_bonus[bonusKey] || {}; let emp = db_karyawan.find(function(k) { return k.id == empId; }); document.getElementById('modal-poin-pokok').value = (b.poin_pokok_override !== null && b.poin_pokok_override !== undefined) ? b.poin_pokok_override : ''; document.getElementById('modal-poin-pokok').placeholder = Number(calcPokok.toFixed(5)); document.getElementById('modal-poin-ekstra').value = (b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined) ? b.poin_ekstra_override : ''; document.getElementById('modal-poin-ekstra').placeholder = Number(calcEkstra.toFixed(5)); document.getElementById('modal-gaji-pokok').value = (b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined) ? b.gaji_pokok_override : ''; document.getElementById('modal-gaji-pokok').placeholder = calcGajiPokok; document.getElementById('modal-poin-bonus').value = b.poin || 0; document.getElementById('modal-gaji-bonus').value = b.nominal || 0; document.getElementById('modal-poin-bonus').oninput = function() { if(emp) document.getElementById('modal-gaji-bonus').value = (parseFloat(this.value)||0) * emp.gaji_per_poin_pokok; }; document.getElementById('modal-bonus').style.display = 'flex'; }; window.closeModal = function() { document.getElementById('modal-bonus').style.display = 'none'; currentEditEmpId = null; }; window.saveBonus = async function() { if(!currentEditEmpId) return; const btn = document.getElementById('btn-save-bonus'); btn.disabled = true; let bonusKey = currentEditEmpId + "_" + dateRangePayroll.start; let inP = document.getElementById('modal-poin-pokok').value; let inE = document.getElementById('modal-poin-ekstra').value; let inG = document.getElementById('modal-gaji-pokok').value; let pBonus = parseFloat(document.getElementById('modal-poin-bonus').value)||0; let gBonus = parseFloat(document.getElementById('modal-gaji-bonus').value)||0; let payload = { emp_id_period: bonusKey, poin: pBonus, nominal: gBonus, poin_pokok_override: inP!==''?parseFloat(inP):null, poin_ekstra_override: inE!==''?parseFloat(inE):null, gaji_pokok_override: inG!==''?parseFloat(inG):null }; const { error } = await supabaseApp.from('bonus').upsert([payload]); if(!error) { db_bonus[bonusKey] = payload; renderPayroll(); closeModal(); } btn.disabled = false; };
+        let currentKasbonId = null; window.openTambahKasbon = function() { let sel = document.getElementById('kasbon-emp-id'); sel.innerHTML = ''; db_karyawan.forEach(function(e) { sel.innerHTML += '<option value="'+e.id+'">'+e.name+'</option>'; }); document.getElementById('kasbon-tanggal').value = todayStr; document.getElementById('kasbon-total').value = ''; document.getElementById('modal-tambah-kasbon').style.display = 'flex'; }; window.closeTambahKasbon = function() { document.getElementById('modal-tambah-kasbon').style.display = 'none'; }; window.saveKasbon = async function() { let emp_id = parseInt(document.getElementById('kasbon-emp-id').value); let tanggal = document.getElementById('kasbon-tanggal').value; let total = parseFloat(document.getElementById('kasbon-total').value); if(!tanggal || !total || total <= 0) return; const payload = { emp_id: emp_id, tanggal_pinjaman: tanggal, total_pinjaman: total }; const { data, error } = await supabaseApp.from('kasbon').insert([payload]).select(); if(!error) { let newObj = data ? data[0] : payload; newObj.id = newObj.id || Date.now(); db_kasbon.push(newObj); closeTambahKasbon(); renderKasbon(); renderDashboard(); } }; window.openKasbonDetail = function(kasbonId) { currentKasbonId = kasbonId; let k = db_kasbon.find(function(x) { return x.id == kasbonId; }); if(!k) return; let emp = db_karyawan.find(function(e) { return e.id == k.emp_id; }); document.getElementById('kasbon-detail-title').innerText = "Detail Kasbon - " + (emp?emp.name:''); let angsuranList = db_angsuran.filter(function(a) { return a.kasbon_id == kasbonId; }).sort(function(a,b) { return new Date(a.tanggal_angsuran) - new Date(b.tanggal_angsuran); }); let tbody = document.querySelector('#table-angsuran tbody'); tbody.innerHTML = ''; let sisa = parseFloat(k.total_pinjaman); if(angsuranList.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada angsuran</td></tr>'; else { angsuranList.forEach(function(a, i) { sisa -= parseFloat(a.nominal); tbody.innerHTML += '<tr><td>'+a.tanggal_angsuran+'</td><td>Angsuran ke-'+(i+1)+'</td><td>'+formatRp(a.nominal)+'</td><td>'+formatRp(sisa)+'</td></tr>'; }); } document.getElementById('kasbon-detail-sisa').innerText = "Sisa Terkini: " + (sisa <= 0 ? 'LUNAS' : formatRp(sisa)); let btnAngsuran = document.getElementById('btn-tambah-angsuran'); if (btnAngsuran) { btnAngsuran.style.display = sisa <= 0 ? 'none' : 'inline-flex'; } document.getElementById('modal-kasbon-detail').style.display = 'flex'; }; window.closeKasbonDetail = function() { document.getElementById('modal-kasbon-detail').style.display = 'none'; currentKasbonId = null; }; window.openTambahAngsuran = function() { if(!currentKasbonId) return; document.getElementById('input-nominal-angsuran').value = ''; document.getElementById('modal-tambah-angsuran').style.display = 'flex'; }; window.closeTambahAngsuran = function() { document.getElementById('modal-tambah-angsuran').style.display = 'none'; }; window.saveAngsuran = async function() { let nom = parseFloat(document.getElementById('input-nominal-angsuran').value); if(!nom || nom <= 0) return; const payload = { kasbon_id: currentKasbonId, tanggal_angsuran: todayStr, nominal: nom }; const { data, error } = await supabaseApp.from('angsuran').insert([payload]).select(); if(!error) { let newObj = data ? data[0] : payload; newObj.id = newObj.id || Date.now(); db_angsuran.push(newObj); closeTambahAngsuran(); openKasbonDetail(currentKasbonId); renderKasbon(); renderDashboard(); } };
+
+        // Print & Details Payroll
+        window.clickNamePayroll = function(name) { currentPayrollFilterName = name; document.getElementById('btn-reset-payroll').style.display = 'inline-flex'; renderPayroll(); }; window.resetFilterPayroll = function() { currentPayrollFilterName = null; document.getElementById('btn-reset-payroll').style.display = 'none'; renderPayroll(); };
+        window.showPayrollDetailModal = function(empId, empName) { document.getElementById('payroll-detail-subtitle').innerText = "Karyawan: " + empName + " | Periode: " + dateRangePayroll.start + " s/d " + dateRangePayroll.end; let tbody = document.querySelector('#table-payroll-detail-daily tbody'); tbody.innerHTML = ''; let filtered = db_absensi.filter(function(ab) { return ab.emp_id == empId && ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; }); filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); }); if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada data absensi untuk periode ini</td></tr>'; } else { filtered.forEach(function(ab) { let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinAkhir(ab); let dayName = new Date(ab.date).toLocaleDateString('id-ID', { weekday: 'long' }); let latenessStr = p.lateness > 0 ? '<span style="color:var(--danger)">' + formatHours(p.lateness) + '</span>' : '-'; let tHariBadge = tHari === 'Libur' ? '<span class="badge badge-warning">Libur</span>' : (tHari === 'Weekend' ? '<span class="badge badge-inactive">Weekend</span>' : '<span class="badge badge-active">Weekday</span>'); tbody.innerHTML += '<tr><td>' + ab.date + '</td><td>' + dayName + '</td><td>' + (ab.clock_in || '-') + '</td><td>' + (ab.clock_out || '-') + '</td><td>' + tHariBadge + '</td><td>' + Number(p.pokok.toFixed(5)) + '</td><td>' + Number(p.ekstra.toFixed(5)) + '</td><td>' + latenessStr + '</td></tr>'; }); } document.getElementById('modal-payroll-detail').style.display = 'flex'; }; window.closePayrollDetailModal = function() { document.getElementById('modal-payroll-detail').style.display = 'none'; };
+        window.printAbsensi = function() { let html = '<html><head><title>Print Absensi</title><style>body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; color: #333; } .header { text-align: center; margin-bottom: 25px; } .header h2 { margin: 0; color: #1f497d; font-size: 22px; } .header p { margin: 5px 0 0 0; font-size: 14px; color: #555; } table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; } th { background-color: #1f497d; color: white; border: 1px solid #1f497d; padding: 10px; font-weight: bold; text-align: center; } td { border: 1px solid #ccc; padding: 8px 12px; color: #333; } tr:nth-child(even) { background-color: #f9fbfd; } .text-center { text-align: center; }</style></head><body onload="window.print();"><div class="header"><h2>Laporan Rekap Absensi Karyawan</h2><p>Periode: '+dateRangeAbsensi.start+' s/d '+dateRangeAbsensi.end+'</p>'+(currentAbsensiFilterName ? '<p>Filter Karyawan: '+currentAbsensiFilterName+'</p>' : '')+'</div><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Total Jam Pokok</th><th>Total Jam Extra</th><th>Poin Pokok</th><th>Poin Extra</th></tr></thead><tbody>'; let filtered = db_absensi.filter(function(ab) { let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; }); filtered.sort(function(a, b) { let empA = db_karyawan.find(function(k) { return k.id == a.emp_id; }); let empB = db_karyawan.find(function(k) { return k.id == b.emp_id; }); let nameA = empA ? empA.name.toLowerCase() : ''; let nameB = empB ? empB.name.toLowerCase() : ''; if (nameA !== nameB) { return nameA.localeCompare(nameB); } return new Date(a.date) - new Date(b.date); }); if(filtered.length === 0) { html += '<tr><td colspan="8" class="text-center">Tidak ada data</td></tr>'; } else { filtered.forEach(function(ab) { let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); let empName = emp ? emp.name : 'ID ' + ab.emp_id; let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinAkhir(ab); let isWknd = (tHari === 'Weekend' || tHari === 'Libur'); let jamNormal = isWknd ? (p.pokok * 6.25) : (p.pokok * 9.0); let dayName = new Date(ab.date).toLocaleDateString('id-ID', { weekday: 'long' }); html += '<tr><td>'+dayName+', '+ab.date+'</td><td>'+empName+'</td><td class="text-center">'+(ab.clock_in || "-:-")+'</td><td class="text-center">'+(ab.clock_out || "-:-")+'</td><td>'+formatHours(jamNormal)+'</td><td>'+formatHours(p.lemburTotal)+'</td><td class="text-center" style="font-weight:bold;">'+Number(p.pokok.toFixed(5))+'</td><td class="text-center" style="font-weight:bold;">'+Number(p.ekstra.toFixed(5))+'</td></tr>'; }); } html += '</tbody></table></body></html>'; let win = window.open('', '_blank'); win.document.write(html); win.document.close(); };
+        window.printPayroll = function() { let startD = new Date(dateRangePayroll.start + "T00:00:00"); let endD = new Date(dateRangePayroll.end + "T00:00:00"); let isBpjsMonth = false; let tempD = new Date(startD); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); } let payrollData = {}; db_karyawan.forEach(function(emp) { payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 }; }); let filteredAbsensi = db_absensi.filter(function(ab) { return ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; }); filteredAbsensi.forEach(function(ab) { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } }); let empList = Object.keys(payrollData).map(function(k){ return payrollData[k]; }); if(currentPayrollFilterName) empList = empList.filter(function(d) { return d.emp.name === currentPayrollFilterName; }); empList.sort(function(a, b) { return a.emp.name.toLowerCase().localeCompare(b.emp.name.toLowerCase()); }); let html = '<html><head><title>Print Slip Payroll</title><style>@page { size: A4 portrait; margin: 12mm 10mm; } body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; background: #ffffff; color: #000; } .grid-container { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; row-gap: 12px; } .payroll-card { border: 1.5px solid #000; background: #fff; page-break-inside: avoid; box-sizing: border-box; } .payroll-card table { width: 100%; border-collapse: collapse; } .payroll-card th, .payroll-card td { border: 1px solid #000; padding: 4px 8px; font-size: 11.5px; height: 22px; box-sizing: border-box; } .payroll-card th { font-size: 12.5px; font-weight: bold; text-align: center; background-color: #ffffff; } .bpjs-row { background-color: #fce8e6; } .total-row { background-color: #ffffff; font-size: 12px; }</style></head><body onload="window.print();"><div class="grid-container">'; empList.forEach(function(data) { if(data.totPokok === 0 && !currentPayrollFilterName) return; let e = data.emp; let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {}; let pPokok = (b.poin_pokok_override !== null && b.poin_pokok_override !== undefined) ? b.poin_pokok_override : data.totPokok; let pEkstra = (b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined) ? b.poin_ekstra_override : data.totEkstra; let pBonus = b.poin || 0; let gPokok = (b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined) ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok); let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2); let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok); let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0; let totGaji = gPokok + gLembur + gBonus - potBpjs; html += '<div class="payroll-card"><table><tr><th colspan="3">'+e.name+'</th></tr><tr><td style="width: 25%;">Pokok:</td><td style="width: 20%; text-align: center; color: red; font-weight: bold;">'+(pPokok > 0 ? Number(pPokok.toFixed(5)) : '')+'</td><td style="width: 55%; text-align: right;">'+formatRp(gPokok)+'</td></tr><tr><td>Extra:</td><td style="text-align: center; color: red; font-weight: bold;">'+(pEkstra > 0 ? Number(pEkstra.toFixed(5)) : '')+'</td><td style="text-align: right;">'+formatRp(gLembur)+'</td></tr><tr class="bpjs-row">'+(potBpjs > 0 ? '<td><strong>BPJS</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(potBpjs)+'</td>' : '<td>&nbsp;</td><td></td><td></td>')+'</tr><tr class="total-row"><td><strong>Total:</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(totGaji)+'</td></tr></table></div>'; }); html += '</div></body></html>'; let win = window.open('', '_blank'); win.document.write(html); win.document.close(); };
+
+        // Jalankan Aplikasi
         startApplication();
 
     } catch (err) {
-        console.error("Critical System Error: ", err); alert("Terjadi kesalahan sistem: " + err.message);
+        console.error("Critical System Error: ", err); alert("Terjadi kesalahan sistem yang membuat app tidak bisa diakses: \n\n" + err.message + "\n\nPastikan koneksi internet stabil.");
     }
     </script>
 </body>
