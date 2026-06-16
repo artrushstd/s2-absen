@@ -377,7 +377,10 @@
                     <div class="card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <h3 class="card-title" style="margin-bottom: 0;">Data Kasbon Karyawan</h3>
-                            <button class="btn btn-primary" onclick="openTambahKasbon()"><i class="fa-solid fa-plus"></i> Tambah Kasbon Baru</button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-outline" onclick="openHistoryKasbon()"><i class="fa-solid fa-clock-rotate-left"></i> History Lunas</button>
+                                <button class="btn btn-primary" onclick="openTambahKasbon()"><i class="fa-solid fa-plus"></i> Tambah Kasbon Baru</button>
+                            </div>
                         </div>
                         <div class="table-container">
                             <table id="table-kasbon">
@@ -524,6 +527,18 @@
     <div id="modal-kasbon-detail" class="modal"><div class="modal-content" style="width: 600px;"><div class="modal-header"><span id="kasbon-detail-title">Detail Kasbon</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeKasbonDetail()"></i></div><div style="margin-bottom: 16px; display:flex; justify-content: space-between; align-items:center;"><h4 style="margin: 0; font-size:15px;" id="kasbon-detail-sisa">Sisa: Rp 0</h4><button class="btn btn-primary" id="btn-tambah-angsuran" onclick="openTambahAngsuran()"><i class="fa-solid fa-plus"></i> Tambah Angsuran</button></div><div class="table-container" style="max-height: 400px; overflow-y:auto;"><table id="table-angsuran"><thead><tr><th>Tanggal Angsuran</th><th>Angsuran Ke</th><th>Nominal</th><th>Sisa Pinjaman</th></tr></thead><tbody></tbody></table></div></div></div>
     <div id="modal-tambah-angsuran" class="modal" style="z-index: 101;"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Tambah Angsuran Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahAngsuran()"></i></div><div class="form-group"><label>Jumlah Angsuran (Rp)</label><input type="number" id="input-nominal-angsuran" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahAngsuran()">Batal</button><button class="btn btn-primary" onclick="saveAngsuran()">Simpan Angsuran</button></div></div></div>
     <div id="modal-tambah-kasbon" class="modal"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Buat Kasbon Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahKasbon()"></i></div><div class="form-group"><label>Pilih Karyawan</label><select id="kasbon-emp-id"></select></div><div class="form-group"><label>Tanggal Pinjaman Masuk</label><input type="date" id="kasbon-tanggal"></div><div class="form-group"><label>Total Pinjaman (Rp)</label><input type="number" id="kasbon-total" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahKasbon()">Batal</button><button class="btn btn-primary" onclick="saveKasbon()">Buat Pinjaman</button></div></div></div>
+    <!-- Modal History Kasbon (Lunas) -->
+    <div id="modal-history-kasbon" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header"><span>History Kasbon Lunas</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeHistoryKasbon()"></i></div>
+            <div class="table-container" style="max-height: 400px; overflow-y:auto;">
+                <table id="table-history-kasbon">
+                    <thead><tr><th>Nama</th><th>Tanggal Pinjaman</th><th>Total Pinjaman</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <div id="modal-payroll-detail" class="modal"><div class="modal-content" style="width: 700px; max-width: 95%;"><div class="modal-header"><span id="payroll-detail-title">Detail Presensi & Poin Harian</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closePayrollDetailModal()"></i></div><div style="margin-bottom: 15px;"><h4 id="payroll-detail-subtitle" style="font-size: 14px; color: var(--text-muted);">Karyawan: - | Periode: -</h4></div><div class="table-container" style="max-height: 400px; overflow-y:auto;"><table id="table-payroll-detail-daily"><thead><tr><th>Tanggal</th><th>Hari</th><th>Jam Masuk</th><th>Jam Keluar</th><th>Tipe Hari</th><th>Poin Pokok</th><th>Poin Ekstra</th><th>Lateness</th></tr></thead><tbody></tbody></table></div></div></div>
 
     <script>
@@ -1168,8 +1183,53 @@
         function renderKasbon() {
             let tbody = document.querySelector('#table-kasbon tbody'); tbody.innerHTML = '';
             if(db_kasbon.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">Data kosong</td></tr>'; return; }
-            db_kasbon.forEach(k => { let emp = db_karyawan.find(e => e.id == k.emp_id); let totA = 0; db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal)); let sisa = parseFloat(k.total_pinjaman) - totA; tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge '+(sisa<=0?'badge-active':'badge-inactive')+' clickable-name" onclick="openKasbonDetail('+k.id+')">'+(sisa<=0?'LUNAS':formatRp(sisa))+'</span></td></tr>'; });
+            
+            let activeCount = 0;
+            db_kasbon.forEach(k => { 
+                let emp = db_karyawan.find(e => e.id == k.emp_id); 
+                let totA = 0; 
+                db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal)); 
+                let sisa = parseFloat(k.total_pinjaman) - totA; 
+                
+                // Hanya tampilkan yang BELUM LUNAS (sisa > 0)
+                if (sisa > 0) {
+                    activeCount++;
+                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-inactive clickable-name" onclick="openKasbonDetail('+k.id+')">'+formatRp(sisa)+'</span></td></tr>'; 
+                }
+            });
+            
+            if (activeCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data kasbon aktif</td></tr>';
+            }
         }
+
+        window.openHistoryKasbon = function() {
+            let tbody = document.querySelector('#table-history-kasbon tbody'); tbody.innerHTML = '';
+            let historyCount = 0;
+            
+            db_kasbon.forEach(k => { 
+                let emp = db_karyawan.find(e => e.id == k.emp_id); 
+                let totA = 0; 
+                db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal)); 
+                let sisa = parseFloat(k.total_pinjaman) - totA; 
+                
+                // Hanya tampilkan yang SUDAH LUNAS (sisa <= 0)
+                if (sisa <= 0) {
+                    historyCount++;
+                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-active clickable-name" onclick="openKasbonDetail('+k.id+')">LUNAS</span></td></tr>'; 
+                }
+            });
+            
+            if (historyCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada history kasbon lunas</td></tr>';
+            }
+            
+            document.getElementById('modal-history-kasbon').style.display = 'flex';
+        };
+
+        window.closeHistoryKasbon = function() {
+            document.getElementById('modal-history-kasbon').style.display = 'none';
+        };
         
         let currentEditEmpId = null; 
         window.openBonusModal = function(empId, empName, calcPokok, calcEkstra, calcGajiPokok) { 
