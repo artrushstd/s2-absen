@@ -994,7 +994,7 @@
             } else {
                 bodyText = '<p>Yang bertanda tangan di bawah ini, HRD Suharno 2, menerangkan dengan sesungguhnya bahwa:</p><table style="margin-left: 20px; font-weight:bold; margin-bottom:15px; width:100%;"><tr><td style="width:150px;">Nama</td><td>: '+emp.name+'</td></tr><tr><td>ID Karyawan</td><td>: '+(emp.id_karyawan || '-')+'</td></tr><tr><td>Jabatan Terakhir</td><td>: '+(emp.jabatan || '-')+'</td></tr></table><p style="text-align: justify;">Telah bekerja di perusahaan kami terhitung sejak tanggal <strong>'+joinIndo+'</strong> hingga tanggal <strong>'+todayIndo+'</strong>.</p><p style="text-align: justify;">Kami mengucapkan banyak terima kasih atas usaha, dedikasi, serta kontribusi yang telah diberikan kepada perusahaan selama masa kerja. Kami berharap kesuksesan untuk karir Saudara/i di masa mendatang.</p><p style="text-align: justify;">Demikian surat pengalaman kerja (Paklaring) ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>';
             }
-            let html = '<html><head><title>'+title+' - '+emp.name+'</title><style>@page { margin: 0; } body { font-family: "Times New Roman", Times, serif; padding: 2.5cm; color: #000; line-height:1.6; font-size:16px; margin: 0; box-sizing: border-box; } .surat-title { text-align: center; margin-bottom: 30px; } .surat-title h2 { text-decoration: underline; margin: 0; font-size: 20px; font-weight: bold; } .surat-title p { margin: 5px 0 0 0; font-size: 14px; } .signature { margin-top: 60px; text-align: right; } .signature div { display: inline-block; text-align: center; }</style></head><body onload="window.print();">' + header + '<div class="surat-title"><h2>' + title + '</h2><p>No: 0' + emp.id + '/' + suratNo + '/HRD/' + (new Date().getMonth() + 1) + '/' + new Date().getFullYear() + '</p></div>' + bodyText + '<div class="signature"><div><p>Yogyakarta, ' + todayIndo + '</p><br><br><br><br><p style="text-decoration: underline; font-weight:bold; margin-bottom:0;">Manager Suharno 2</p></div></div></body></html>';
+            let html = '<html><head><title>'+title+' - '+emp.name+'</title><style>@page { margin: 0; } body { font-family: "Times New Roman", Times, serif; padding: 2.5cm; color: #000; line-height:1.6; font-size:16px; margin: 0; box-sizing: border-box; } .surat-title { text-align: center; margin-bottom: 30px; } .surat-title h2 { text-decoration: underline; margin: 0; font-size: 20px; font-weight: bold; } .surat-title p { margin: 5px 0 0 0; font-size: 14px; } .signature { margin-top: 60px; text-align: right; } .signature div { display: inline-block; text-align: center; }</style></head><body onload="window.print();">' + header + '<div class="surat-title"><h2>' + title + '</h2><p>No: 0' + emp.id + '/' + suratNo + '/HRD/' + (new Date().getMonth() + 1) + '/' + new Date().getFullYear() + '</p></div>' + bodyText + '<div class="signature"><div><p>Kab. Semarang, ' + todayIndo + '</p><br><br><br><br><p style="text-decoration: underline; font-weight:bold; margin-bottom:0;">Manager Suharno 2</p></div></div></body></html>';
             let win = window.open('', '_blank'); win.document.write(html); win.document.close();
         }
 
@@ -1343,7 +1343,93 @@
         // Print & Details Payroll
         window.clickNamePayroll = function(name) { currentPayrollFilterName = name; document.getElementById('btn-reset-payroll').style.display = 'inline-flex'; renderPayroll(); }; window.resetFilterPayroll = function() { currentPayrollFilterName = null; document.getElementById('btn-reset-payroll').style.display = 'none'; renderPayroll(); };
         window.showPayrollDetailModal = function(empId, empName) { document.getElementById('payroll-detail-subtitle').innerText = "Karyawan: " + empName + " | Periode: " + dateRangePayroll.start + " s/d " + dateRangePayroll.end; let tbody = document.querySelector('#table-payroll-detail-daily tbody'); tbody.innerHTML = ''; let filtered = db_absensi.filter(function(ab) { return ab.emp_id == empId && ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; }); filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); }); if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada data absensi untuk periode ini</td></tr>'; } else { filtered.forEach(function(ab) { let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinAkhir(ab); let dayName = new Date(ab.date).toLocaleDateString('id-ID', { weekday: 'long' }); let latenessStr = p.lateness > 0 ? '<span style="color:var(--danger)">' + formatHours(p.lateness) + '</span>' : '-'; let tHariBadge = tHari === 'Libur' ? '<span class="badge badge-warning">Libur</span>' : (tHari === 'Weekend' ? '<span class="badge badge-inactive">Weekend</span>' : '<span class="badge badge-active">Weekday</span>'); tbody.innerHTML += '<tr><td>' + ab.date + '</td><td>' + dayName + '</td><td>' + (ab.clock_in || '-') + '</td><td>' + (ab.clock_out || '-') + '</td><td>' + tHariBadge + '</td><td>' + Number(p.pokok.toFixed(5)) + '</td><td>' + Number(p.ekstra.toFixed(5)) + '</td><td>' + latenessStr + '</td></tr>'; }); } document.getElementById('modal-payroll-detail').style.display = 'flex'; }; window.closePayrollDetailModal = function() { document.getElementById('modal-payroll-detail').style.display = 'none'; };
-        window.printAbsensi = function() { let html = '<html><head><title>Print Absensi</title><style>body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; color: #333; } .header { text-align: center; margin-bottom: 25px; } .header h2 { margin: 0; color: #1f497d; font-size: 22px; } .header p { margin: 5px 0 0 0; font-size: 14px; color: #555; } table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; } th { background-color: #1f497d; color: white; border: 1px solid #1f497d; padding: 10px; font-weight: bold; text-align: center; } td { border: 1px solid #ccc; padding: 8px 12px; color: #333; } tr:nth-child(even) { background-color: #f9fbfd; } .text-center { text-align: center; }</style></head><body onload="window.print();"><div class="header"><h2>Laporan Rekap Absensi Karyawan</h2><p>Periode: '+dateRangeAbsensi.start+' s/d '+dateRangeAbsensi.end+'</p>'+(currentAbsensiFilterName ? '<p>Filter Karyawan: '+currentAbsensiFilterName+'</p>' : '')+'</div><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Jam Masuk</th><th>Jam Pulang</th><th>Total Jam Pokok</th><th>Total Jam Extra</th><th>Poin Pokok</th><th>Poin Extra</th></tr></thead><tbody>'; let filtered = db_absensi.filter(function(ab) { let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; }); filtered.sort(function(a, b) { let empA = db_karyawan.find(function(k) { return k.id == a.emp_id; }); let empB = db_karyawan.find(function(k) { return k.id == b.emp_id; }); let nameA = empA ? empA.name.toLowerCase() : ''; let nameB = empB ? empB.name.toLowerCase() : ''; if (nameA !== nameB) { return nameA.localeCompare(nameB); } return new Date(a.date) - new Date(b.date); }); if(filtered.length === 0) { html += '<tr><td colspan="8" class="text-center">Tidak ada data</td></tr>'; } else { filtered.forEach(function(ab) { let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); let empName = emp ? emp.name : 'ID ' + ab.emp_id; let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinAkhir(ab); let isWknd = (tHari === 'Weekend' || tHari === 'Libur'); let jamNormal = isWknd ? (p.pokok * 6.25) : (p.pokok * 9.0); let dayName = new Date(ab.date).toLocaleDateString('id-ID', { weekday: 'long' }); html += '<tr><td>'+dayName+', '+ab.date+'</td><td>'+empName+'</td><td class="text-center">'+(ab.clock_in || "-:-")+'</td><td class="text-center">'+(ab.clock_out || "-:-")+'</td><td>'+formatHours(jamNormal)+'</td><td>'+formatHours(p.lemburTotal)+'</td><td class="text-center" style="font-weight:bold;">'+Number(p.pokok.toFixed(5))+'</td><td class="text-center" style="font-weight:bold;">'+Number(p.ekstra.toFixed(5))+'</td></tr>'; }); } html += '</tbody></table></body></html>'; let win = window.open('', '_blank'); win.document.write(html); win.document.close(); };
+        window.printAbsensi = function() { 
+            // 1. TATA LETAK CSS (Irit Kertas & Tinta)
+            let html = '<html><head><title>Print Absensi</title><style>' +
+                '@page { size: A4 portrait; margin: 10mm; } ' + // Margin kertas ditekan jadi 1cm
+                'body { font-family: "Arial", sans-serif; font-size: 11px; color: #000; margin: 0; } ' + 
+                '.header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 5px; } ' + 
+                '.header h2 { margin: 0; font-size: 16px; text-transform: uppercase; } ' + 
+                '.header p { margin: 2px 0 0 0; font-size: 11px; } ' + 
+                'table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 10px; } ' + // Font tabel 10px
+                'th, td { border: 1px solid #000; padding: 3px 4px; vertical-align: middle; } ' + // Padding dirapatkan jadi 3px
+                'th { background-color: #f0f0f0; font-weight: bold; text-align: center; } ' + 
+                '.text-center { text-align: center; }' +
+                '</style></head><body onload="window.print();">';
+                
+            // 2. HEADER SURAT CETAK
+            html += '<div class="header">' +
+                '<h2>Laporan Rekap Absensi Karyawan</h2>' +
+                '<p>Periode: <strong>'+dateRangeAbsensi.start+'</strong> s/d <strong>'+dateRangeAbsensi.end+'</strong>' + 
+                (currentAbsensiFilterName ? ' | Filter Karyawan: <strong>'+currentAbsensiFilterName+'</strong>' : '') + '</p>' +
+                '</div>';
+                
+            // 3. HEADER TABEL (Kolom dirampingkan jadi 7 kolom)
+            html += '<table><thead><tr>' +
+                '<th style="width: 12%;">Tanggal</th>' +
+                '<th style="width: 28%;">Nama Karyawan</th>' +
+                '<th style="width: 15%;">Jam Kerja (In-Out)</th>' +
+                '<th style="width: 12%;">Tot. Pokok</th>' +
+                '<th style="width: 12%;">Tot. Extra</th>' +
+                '<th style="width: 10%;">P. Pokok</th>' +
+                '<th style="width: 10%;">P. Extra</th>' +
+                '</tr></thead><tbody>'; 
+                
+            // 4. FILTER DATA
+            let filtered = db_absensi.filter(function(ab) { 
+                let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); 
+                let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; 
+                return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; 
+            }); 
+            
+            // Sortir: Berdasarkan Nama dulu, baru Tanggal
+            filtered.sort(function(a, b) { 
+                let empA = db_karyawan.find(function(k) { return k.id == a.emp_id; }); 
+                let empB = db_karyawan.find(function(k) { return k.id == b.emp_id; }); 
+                let nameA = empA ? empA.name.toLowerCase() : ''; 
+                let nameB = empB ? empB.name.toLowerCase() : ''; 
+                if (nameA !== nameB) return nameA.localeCompare(nameB); 
+                return new Date(a.date) - new Date(b.date); 
+            }); 
+            
+            // 5. RENDER DATA KE TABEL
+            if(filtered.length === 0) { 
+                html += '<tr><td colspan="7" class="text-center">Tidak ada data absensi</td></tr>'; 
+            } else { 
+                filtered.forEach(function(ab) { 
+                    let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); 
+                    let empName = emp ? emp.name : 'ID ' + ab.emp_id; 
+                    let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); 
+                    let p = hitungPoinAkhir(ab); 
+                    let isWknd = (tHari === 'Weekend' || tHari === 'Libur'); 
+                    let jamNormal = isWknd ? (p.pokok * 6.25) : (p.pokok * 9.0); 
+                    
+                    // Singkat nama hari & tanggal (contoh: Sen, 20/06)
+                    let dateObj = new Date(ab.date);
+                    let dayName = dateObj.toLocaleDateString('id-ID', { weekday: 'short' }); 
+                    let dParts = ab.date.split('-'); // 2026-06-20
+                    let shortDate = dayName + ', ' + dParts[2] + '/' + dParts[1];
+                    
+                    // Gabungkan In - Out
+                    let inOut = (ab.clock_in || "-:-") + ' - ' + (ab.clock_out || "-:-");
+                    
+                    html += '<tr>' +
+                        '<td class="text-center">' + shortDate + '</td>' +
+                        '<td><strong>' + empName + '</strong></td>' +
+                        '<td class="text-center">' + inOut + '</td>' +
+                        '<td class="text-center">' + formatHours(jamNormal) + '</td>' +
+                        '<td class="text-center">' + formatHours(p.lemburTotal) + '</td>' +
+                        '<td class="text-center">' + Number(p.pokok.toFixed(3)) + '</td>' +
+                        '<td class="text-center">' + Number(p.ekstra.toFixed(3)) + '</td>' +
+                        '</tr>'; 
+                }); 
+            } 
+            html += '</tbody></table></body></html>'; 
+            
+            let win = window.open('', '_blank'); 
+            win.document.write(html); 
+            win.document.close(); 
+        };
         window.printPayroll = function() { let startD = new Date(dateRangePayroll.start + "T00:00:00"); let endD = new Date(dateRangePayroll.end + "T00:00:00"); let isBpjsMonth = false; let tempD = new Date(startD); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); } let payrollData = {}; db_karyawan.forEach(function(emp) { payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 }; }); let filteredAbsensi = db_absensi.filter(function(ab) { return ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; }); filteredAbsensi.forEach(function(ab) { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } }); let empList = Object.keys(payrollData).map(function(k){ return payrollData[k]; }); if(currentPayrollFilterName) empList = empList.filter(function(d) { return d.emp.name === currentPayrollFilterName; }); empList.sort(function(a, b) { return a.emp.name.toLowerCase().localeCompare(b.emp.name.toLowerCase()); }); let html = '<html><head><title>Print Slip Payroll</title><style>@page { size: A4 portrait; margin: 12mm 10mm; } body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; background: #ffffff; color: #000; } .grid-container { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; row-gap: 12px; } .payroll-card { border: 1.5px solid #000; background: #fff; page-break-inside: avoid; box-sizing: border-box; } .payroll-card table { width: 100%; border-collapse: collapse; } .payroll-card th, .payroll-card td { border: 1px solid #000; padding: 4px 8px; font-size: 11.5px; height: 22px; box-sizing: border-box; } .payroll-card th { font-size: 12.5px; font-weight: bold; text-align: center; background-color: #ffffff; } .bpjs-row { background-color: #fce8e6; } .total-row { background-color: #ffffff; font-size: 12px; }</style></head><body onload="window.print();"><div class="grid-container">'; empList.forEach(function(data) { if(data.totPokok === 0 && !currentPayrollFilterName) return; let e = data.emp; let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {}; let pPokok = (b.poin_pokok_override !== null && b.poin_pokok_override !== undefined) ? b.poin_pokok_override : data.totPokok; let pEkstra = (b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined) ? b.poin_ekstra_override : data.totEkstra; let pBonus = b.poin || 0; let gPokok = (b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined) ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok); let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2); let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok); let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0; let totGaji = gPokok + gLembur + gBonus - potBpjs; html += '<div class="payroll-card"><table><tr><th colspan="3">'+e.name+'</th></tr><tr><td style="width: 25%;">Pokok:</td><td style="width: 20%; text-align: center; color: red; font-weight: bold;">'+(pPokok > 0 ? Number(pPokok.toFixed(5)) : '')+'</td><td style="width: 55%; text-align: right;">'+formatRp(gPokok)+'</td></tr><tr><td>Extra:</td><td style="text-align: center; color: red; font-weight: bold;">'+(pEkstra > 0 ? Number(pEkstra.toFixed(5)) : '')+'</td><td style="text-align: right;">'+formatRp(gLembur)+'</td></tr><tr class="bpjs-row">'+(potBpjs > 0 ? '<td><strong>BPJS</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(potBpjs)+'</td>' : '<td>&nbsp;</td><td></td><td></td>')+'</tr><tr class="total-row"><td><strong>Total:</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(totGaji)+'</td></tr></table></div>'; }); html += '</div></body></html>'; let win = window.open('', '_blank'); win.document.write(html); win.document.close(); };
 
         // Jalankan Aplikasi
