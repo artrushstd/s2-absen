@@ -893,25 +893,50 @@
         window.closeKaryawanModal = function() { document.getElementById('modal-karyawan').style.display = 'none'; };
 
         window.saveKaryawan = async function() {
-            const btn = document.getElementById('btn-save-karyawan'); const editId = document.getElementById('edit-emp-id').value;
+            const btn = document.getElementById('btn-save-karyawan'); 
+            const editId = document.getElementById('edit-emp-id').value;
+            
+            // PERBAIKAN: Menambahkan gaji_per_poin_ekstra: 0 agar Supabase tidak menolak
             const newEmp = { 
-                id: parseInt(document.getElementById('new-emp-id').value)||0, id_karyawan: document.getElementById('new-emp-id-karyawan').value,
-                name: document.getElementById('new-emp-name').value.trim(), jabatan: document.getElementById('new-emp-jabatan').value.trim(), 
-                status_pegawai: document.getElementById('new-emp-status-pegawai').value, join_date: document.getElementById('new-emp-tgl-join').value, 
-                tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, status_bpjs: document.getElementById('new-emp-bpjs').value, 
-                gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value)||0, is_active: document.getElementById('new-emp-status').value === 'true' 
+                id: parseInt(document.getElementById('new-emp-id').value) || 0, 
+                id_karyawan: document.getElementById('new-emp-id-karyawan').value,
+                name: document.getElementById('new-emp-name').value.trim(), 
+                jabatan: document.getElementById('new-emp-jabatan').value.trim(), 
+                status_pegawai: document.getElementById('new-emp-status-pegawai').value, 
+                join_date: document.getElementById('new-emp-tgl-join').value, 
+                tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, 
+                status_bpjs: document.getElementById('new-emp-bpjs').value, 
+                gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value) || 0, 
+                gaji_per_poin_ekstra: 0,  // <--- INI TAMBAHANNYA
+                is_active: document.getElementById('new-emp-status').value === 'true' 
             };
-            if(!newEmp.id || !newEmp.name || !newEmp.join_date || !newEmp.tanggal_lahir || newEmp.gaji_per_poin_pokok <= 0) return alert("Isi form lengkap!");
-            btn.disabled = true;
+            
+            if(!newEmp.id || !newEmp.name || !newEmp.join_date || !newEmp.tanggal_lahir || newEmp.gaji_per_poin_pokok <= 0) {
+                return alert("Isi form dengan lengkap! Gaji Pokok tidak boleh 0.");
+            }
+            
+            btn.disabled = true; btn.innerText = "Menyimpan...";
+            
             if(editId) {
                 const { data, error } = await supabaseApp.from('karyawan').update(newEmp).eq('id', editId).select();
-                if(!error) { let idx = db_karyawan.findIndex(function(k) { return k.id == editId; }); if(idx>-1 && data.length) db_karyawan[idx] = data[0]; else fetchDataSupabase(); closeKaryawanModal(); alert("Berhasil."); }
+                if(!error) { 
+                    let idx = db_karyawan.findIndex(k => k.id == editId); 
+                    if(idx > -1 && data.length) db_karyawan[idx] = data[0]; 
+                    else fetchDataSupabase(); 
+                    closeKaryawanModal(); alert("Berhasil diubah."); 
+                } else alert("Error Edit: " + error.message);
             } else {
                 newEmp.sp_level = 'NONE';
                 const { data, error } = await supabaseApp.from('karyawan').insert([newEmp]).select();
-                if(!error) { if(data.length) db_karyawan.push(data[0]); else fetchDataSupabase(); closeKaryawanModal(); alert("Berhasil ditambahkan."); }
+                if(!error) { 
+                    if(data.length) db_karyawan.push(data[0]); 
+                    else fetchDataSupabase(); 
+                    closeKaryawanModal(); alert("Berhasil ditambahkan."); 
+                } else alert("Error Tambah Data: " + error.message); // Akan memunculkan pop-up jika masih ada error
             }
-            btn.disabled = false; renderKaryawan(); renderDashboard();
+            
+            btn.disabled = false; btn.innerText = editId ? "Simpan Perubahan" : "Buat Karyawan";
+            renderKaryawan(); renderDashboard();
         };
 
         window.deleteKaryawan = async function(empId, empName) {
