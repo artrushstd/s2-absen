@@ -1430,7 +1430,124 @@
             win.document.write(html); 
             win.document.close(); 
         };
-        window.printPayroll = function() { let startD = new Date(dateRangePayroll.start + "T00:00:00"); let endD = new Date(dateRangePayroll.end + "T00:00:00"); let isBpjsMonth = false; let tempD = new Date(startD); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); } let payrollData = {}; db_karyawan.forEach(function(emp) { payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 }; }); let filteredAbsensi = db_absensi.filter(function(ab) { return ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; }); filteredAbsensi.forEach(function(ab) { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } }); let empList = Object.keys(payrollData).map(function(k){ return payrollData[k]; }); if(currentPayrollFilterName) empList = empList.filter(function(d) { return d.emp.name === currentPayrollFilterName; }); empList.sort(function(a, b) { return a.emp.name.toLowerCase().localeCompare(b.emp.name.toLowerCase()); }); let html = '<html><head><title>Print Slip Payroll</title><style>@page { size: A4 portrait; margin: 12mm 10mm; } body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; background: #ffffff; color: #000; } .grid-container { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; row-gap: 12px; } .payroll-card { border: 1.5px solid #000; background: #fff; page-break-inside: avoid; box-sizing: border-box; } .payroll-card table { width: 100%; border-collapse: collapse; } .payroll-card th, .payroll-card td { border: 1px solid #000; padding: 4px 8px; font-size: 11.5px; height: 22px; box-sizing: border-box; } .payroll-card th { font-size: 12.5px; font-weight: bold; text-align: center; background-color: #ffffff; } .bpjs-row { background-color: #fce8e6; } .total-row { background-color: #ffffff; font-size: 12px; }</style></head><body onload="window.print();"><div class="grid-container">'; empList.forEach(function(data) { if(data.totPokok === 0 && !currentPayrollFilterName) return; let e = data.emp; let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {}; let pPokok = (b.poin_pokok_override !== null && b.poin_pokok_override !== undefined) ? b.poin_pokok_override : data.totPokok; let pEkstra = (b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined) ? b.poin_ekstra_override : data.totEkstra; let pBonus = b.poin || 0; let gPokok = (b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined) ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok); let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2); let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok); let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0; let totGaji = gPokok + gLembur + gBonus - potBpjs; html += '<div class="payroll-card"><table><tr><th colspan="3">'+e.name+'</th></tr><tr><td style="width: 25%;">Pokok:</td><td style="width: 20%; text-align: center; color: red; font-weight: bold;">'+(pPokok > 0 ? Number(pPokok.toFixed(5)) : '')+'</td><td style="width: 55%; text-align: right;">'+formatRp(gPokok)+'</td></tr><tr><td>Extra:</td><td style="text-align: center; color: red; font-weight: bold;">'+(pEkstra > 0 ? Number(pEkstra.toFixed(5)) : '')+'</td><td style="text-align: right;">'+formatRp(gLembur)+'</td></tr><tr class="bpjs-row">'+(potBpjs > 0 ? '<td><strong>BPJS</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(potBpjs)+'</td>' : '<td>&nbsp;</td><td></td><td></td>')+'</tr><tr class="total-row"><td><strong>Total:</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(totGaji)+'</td></tr></table></div>'; }); html += '</div></body></html>'; let win = window.open('', '_blank'); win.document.write(html); win.document.close(); };
+        window.printPayroll = function() { 
+                    let startD = new Date(dateRangePayroll.start + "T00:00:00"); 
+                    let endD = new Date(dateRangePayroll.end + "T00:00:00"); 
+                    let isBpjsMonth = false; 
+                    let tempD = new Date(startD); 
+                    
+                    // Cek apakah ada tanggal 10 di periode ini untuk potong BPJS
+                    while (tempD <= endD) { 
+                        if (tempD.getDate() === 10) { isBpjsMonth = true; break; } 
+                        tempD.setDate(tempD.getDate() + 1); 
+                    } 
+                    
+                    let payrollData = {}; 
+                    db_karyawan.forEach(function(emp) { 
+                        payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 }; 
+                    }); 
+                    
+                    let filteredAbsensi = db_absensi.filter(function(ab) { 
+                        return ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; 
+                    }); 
+                    
+                    filteredAbsensi.forEach(function(ab) { 
+                        if(payrollData[ab.emp_id]) { 
+                            let p = hitungPoinAkhir(ab); 
+                            payrollData[ab.emp_id].totPokok += p.pokok; 
+                            payrollData[ab.emp_id].totEkstra += p.ekstra; 
+                        } 
+                    }); 
+                    
+                    let empList = Object.keys(payrollData).map(function(k){ return payrollData[k]; }); 
+                    if(currentPayrollFilterName) {
+                        empList = empList.filter(function(d) { return d.emp.name === currentPayrollFilterName; }); 
+                    }
+                    empList.sort(function(a, b) { 
+                        return a.emp.name.toLowerCase().localeCompare(b.emp.name.toLowerCase()); 
+                    }); 
+                
+                    // --- VARIABEL UNTUK RINGKASAN PAYROLL ---
+                    let sumPokok = 0;
+                    let sumEkstra = 0;
+                    let sumBpjs = 0;
+                    let sumBonus = 0;
+                    let sumGrandTotal = 0;
+                    let countEmp = 0;
+                
+                    // --- CSS UNTUK PRINT ---
+                    let html = '<html><head><title>Print Slip Payroll</title><style>' +
+                        '@page { size: A4 portrait; margin: 12mm 10mm; } ' +
+                        'body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 0; background: #ffffff; color: #000; } ' +
+                        '.grid-container { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; row-gap: 12px; } ' +
+                        '.payroll-card { border: 1.5px solid #000; background: #fff; page-break-inside: avoid; box-sizing: border-box; } ' +
+                        '.payroll-card table { width: 100%; border-collapse: collapse; } ' +
+                        '.payroll-card th, .payroll-card td { border: 1px solid #000; padding: 4px 8px; font-size: 11.5px; height: 22px; box-sizing: border-box; } ' +
+                        '.payroll-card th { font-size: 12.5px; font-weight: bold; text-align: center; background-color: #ffffff; } ' +
+                        '.bpjs-row { background-color: #fce8e6; } ' +
+                        '.total-row { background-color: #ffffff; font-size: 12px; } ' +
+                        '.summary-section { margin-top: 30px; border: 2px solid #000; padding: 15px; page-break-inside: avoid; } ' +
+                        '.summary-table { width: 100%; border-collapse: collapse; font-size: 14px; } ' +
+                        '.summary-table td { padding: 6px 0; border-bottom: 1px dashed #ccc; } ' +
+                        '.summary-table tr:last-child td { border-bottom: none; } ' +
+                        '</style></head><body onload="window.print();"><div class="grid-container">'; 
+                
+                    // --- LOOP KARYAWAN & PERHITUNGAN ---
+                    empList.forEach(function(data) { 
+                        if(data.totPokok === 0 && !currentPayrollFilterName) return; 
+                        
+                        let e = data.emp; 
+                        let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {}; 
+                        let pPokok = (b.poin_pokok_override !== null && b.poin_pokok_override !== undefined) ? b.poin_pokok_override : data.totPokok; 
+                        let pEkstra = (b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined) ? b.poin_ekstra_override : data.totEkstra; 
+                        let pBonus = b.poin || 0; 
+                        
+                        let gPokok = (b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined) ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok); 
+                        let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2); 
+                        let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok); 
+                        let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0; 
+                        let totGaji = gPokok + gLembur + gBonus - potBpjs; 
+                        
+                        // Akumulasi data untuk Ringkasan
+                        sumPokok += gPokok;
+                        sumEkstra += gLembur;
+                        sumBonus += gBonus;
+                        sumBpjs += potBpjs;
+                        sumGrandTotal += totGaji;
+                        countEmp++;
+                
+                        // Render Slip Gaji Karyawan
+                        html += '<div class="payroll-card"><table>' +
+                            '<tr><th colspan="3">'+e.name+'</th></tr>' +
+                            '<tr><td style="width: 25%;">Pokok:</td><td style="width: 20%; text-align: center; color: red; font-weight: bold;">'+(pPokok > 0 ? Number(pPokok.toFixed(5)) : '')+'</td><td style="width: 55%; text-align: right;">'+formatRp(gPokok)+'</td></tr>' +
+                            '<tr><td>Extra:</td><td style="text-align: center; color: red; font-weight: bold;">'+(pEkstra > 0 ? Number(pEkstra.toFixed(5)) : '')+'</td><td style="text-align: right;">'+formatRp(gLembur)+'</td></tr>' +
+                            (gBonus > 0 ? '<tr><td>Bonus:</td><td style="text-align: center; color: red; font-weight: bold;">'+(pBonus > 0 ? pBonus : '')+'</td><td style="text-align: right;">'+formatRp(gBonus)+'</td></tr>' : '') +
+                            '<tr class="bpjs-row">'+(potBpjs > 0 ? '<td><strong>BPJS</strong></td><td></td><td style="text-align: right; font-weight: bold;">- '+formatRp(potBpjs)+'</td>' : '<td>&nbsp;</td><td></td><td></td>')+'</tr>' +
+                            '<tr class="total-row"><td><strong>Total:</strong></td><td></td><td style="text-align: right; font-weight: bold;">'+formatRp(totGaji)+'</td></tr>' +
+                            '</table></div>'; 
+                    }); 
+                    
+                    html += '</div>'; // Menutup div.grid-container
+                
+                    // --- TAMBAHAN BAGIAN RINGKASAN PAYROLL (SUMMARY) ---
+                    html += '<div class="summary-section">';
+                    html += '<h3 style="text-align: center; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; font-size: 16px;">Ringkasan Payroll<br><span style="font-size: 12px; font-weight: normal;">Periode: ' + dateRangePayroll.start + ' s/d ' + dateRangePayroll.end + '</span></h3>';
+                    html += '<table class="summary-table">';
+                    html += '<tr><td>Jumlah Karyawan Dibayar</td><td style="text-align: right; font-weight: bold;">' + countEmp + ' Orang</td></tr>';
+                    html += '<tr><td>Total Gaji Pokok</td><td style="text-align: right;">' + formatRp(sumPokok) + '</td></tr>';
+                    html += '<tr><td>Total Gaji / Poin Ekstra</td><td style="text-align: right;">' + formatRp(sumEkstra) + '</td></tr>';
+                    html += '<tr><td>Total Bonus</td><td style="text-align: right;">' + (sumBonus > 0 ? formatRp(sumBonus) : 'Rp 0') + '</td></tr>';
+                    html += '<tr><td style="color: red;">Total Potongan BPJS</td><td style="text-align: right; color: red;">- ' + formatRp(sumBpjs) + '</td></tr>';
+                    html += '<tr style="border-top: 2px solid #000;"><td style="padding-top: 10px; font-size: 16px;"><strong>GRAND TOTAL PAYROLL</strong></td><td style="padding-top: 10px; font-size: 16px; text-align: right;"><strong>' + formatRp(sumGrandTotal) + '</strong></td></tr>';
+                    html += '</table>';
+                    html += '</div>';
+                    
+                    html += '</body></html>'; 
+                    
+                    let win = window.open('', '_blank'); 
+                    win.document.write(html); 
+                    win.document.close(); 
+                };
 
         // Jalankan Aplikasi
         startApplication();
