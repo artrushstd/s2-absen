@@ -1344,17 +1344,20 @@
         window.clickNamePayroll = function(name) { currentPayrollFilterName = name; document.getElementById('btn-reset-payroll').style.display = 'inline-flex'; renderPayroll(); }; window.resetFilterPayroll = function() { currentPayrollFilterName = null; document.getElementById('btn-reset-payroll').style.display = 'none'; renderPayroll(); };
         window.showPayrollDetailModal = function(empId, empName) { document.getElementById('payroll-detail-subtitle').innerText = "Karyawan: " + empName + " | Periode: " + dateRangePayroll.start + " s/d " + dateRangePayroll.end; let tbody = document.querySelector('#table-payroll-detail-daily tbody'); tbody.innerHTML = ''; let filtered = db_absensi.filter(function(ab) { return ab.emp_id == empId && ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end; }); filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); }); if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada data absensi untuk periode ini</td></tr>'; } else { filtered.forEach(function(ab) { let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); let p = hitungPoinAkhir(ab); let dayName = new Date(ab.date).toLocaleDateString('id-ID', { weekday: 'long' }); let latenessStr = p.lateness > 0 ? '<span style="color:var(--danger)">' + formatHours(p.lateness) + '</span>' : '-'; let tHariBadge = tHari === 'Libur' ? '<span class="badge badge-warning">Libur</span>' : (tHari === 'Weekend' ? '<span class="badge badge-inactive">Weekend</span>' : '<span class="badge badge-active">Weekday</span>'); tbody.innerHTML += '<tr><td>' + ab.date + '</td><td>' + dayName + '</td><td>' + (ab.clock_in || '-') + '</td><td>' + (ab.clock_out || '-') + '</td><td>' + tHariBadge + '</td><td>' + Number(p.pokok.toFixed(5)) + '</td><td>' + Number(p.ekstra.toFixed(5)) + '</td><td>' + latenessStr + '</td></tr>'; }); } document.getElementById('modal-payroll-detail').style.display = 'flex'; }; window.closePayrollDetailModal = function() { document.getElementById('modal-payroll-detail').style.display = 'none'; };
         window.printAbsensi = function() { 
-            // 1. TATA LETAK CSS (Irit Kertas & Tinta)
+            // 1. TATA LETAK CSS
             let html = '<html><head><title>Print Absensi</title><style>' +
-                '@page { size: A4 portrait; margin: 10mm; } ' + // Margin kertas ditekan jadi 1cm
+                '@page { size: A4 portrait; margin: 10mm; } ' + 
                 'body { font-family: "Arial", sans-serif; font-size: 11px; color: #000; margin: 0; } ' + 
                 '.header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 5px; } ' + 
                 '.header h2 { margin: 0; font-size: 16px; text-transform: uppercase; } ' + 
                 '.header p { margin: 2px 0 0 0; font-size: 11px; } ' + 
-                'table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 10px; } ' + // Font tabel 10px
-                'th, td { border: 1px solid #000; padding: 3px 4px; vertical-align: middle; } ' + // Padding dirapatkan jadi 3px
+                'table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 10px; } ' + 
+                'th, td { border: 1px solid #000; padding: 3px 4px; vertical-align: middle; } ' + 
                 'th { background-color: #f0f0f0; font-weight: bold; text-align: center; } ' + 
-                '.text-center { text-align: center; }' +
+                '.text-center { text-align: center; } ' +
+                '.text-right { text-align: right; } ' +
+                /* CSS UNTUK BARIS TOTAL PER KARYAWAN (BORDER TEBAL) */
+                '.subtotal-row td { background-color: #e8eaed; font-weight: bold; border-bottom: 2.5px solid #000; padding-top: 6px; padding-bottom: 6px; font-size: 11px; } ' +
                 '</style></head><body onload="window.print();">';
                 
             // 2. HEADER SURAT CETAK
@@ -1364,25 +1367,24 @@
                 (currentAbsensiFilterName ? ' | Filter Karyawan: <strong>'+currentAbsensiFilterName+'</strong>' : '') + '</p>' +
                 '</div>';
                 
-            // 3. HEADER TABEL (Kolom dirampingkan jadi 7 kolom)
+            // 3. HEADER TABEL
             html += '<table><thead><tr>' +
                 '<th style="width: 12%;">Tanggal</th>' +
                 '<th style="width: 28%;">Nama Karyawan</th>' +
                 '<th style="width: 15%;">Jam Kerja (In-Out)</th>' +
-                '<th style="width: 12%;">Tot. Pokok</th>' +
-                '<th style="width: 12%;">Tot. Extra</th>' +
-                '<th style="width: 10%;">P. Pokok</th>' +
-                '<th style="width: 10%;">P. Extra</th>' +
+                '<th style="width: 12%;">Tot. Pokok (Jam)</th>' +
+                '<th style="width: 12%;">Tot. Extra (Jam)</th>' +
+                '<th style="width: 10%;">Poin Pokok</th>' +
+                '<th style="width: 10%;">Poin Extra</th>' +
                 '</tr></thead><tbody>'; 
                 
-            // 4. FILTER DATA
+            // 4. FILTER & SORT DATA (Sortir wajib per nama agar grup tidak berantakan)
             let filtered = db_absensi.filter(function(ab) { 
                 let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); 
                 let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; 
                 return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; 
             }); 
             
-            // Sortir: Berdasarkan Nama dulu, baru Tanggal
             filtered.sort(function(a, b) { 
                 let empA = db_karyawan.find(function(k) { return k.id == a.emp_id; }); 
                 let empB = db_karyawan.find(function(k) { return k.id == b.emp_id; }); 
@@ -1392,36 +1394,69 @@
                 return new Date(a.date) - new Date(b.date); 
             }); 
             
-            // 5. RENDER DATA KE TABEL
+            // 5. RENDER DATA & HITUNG SUBTOTAL
             if(filtered.length === 0) { 
                 html += '<tr><td colspan="7" class="text-center">Tidak ada data absensi</td></tr>'; 
             } else { 
-                filtered.forEach(function(ab) { 
+                let currentEmpId = null;
+                let currentEmpName = "";
+                let subtotalPokok = 0;
+                let subtotalEkstra = 0;
+        
+                filtered.forEach(function(ab, index) { 
                     let emp = db_karyawan.find(function(k) { return k.id == ab.emp_id; }); 
                     let empName = emp ? emp.name : 'ID ' + ab.emp_id; 
+        
+                    // LOGIKA PENTING: Jika nama karyawan berganti, cetak baris Total karyawan sebelumnya dulu
+                    if (currentEmpId !== null && currentEmpId !== ab.emp_id) {
+                        html += '<tr class="subtotal-row">' +
+                            '<td colspan="5" class="text-right">Total Poin ' + currentEmpName + ' :</td>' +
+                            '<td class="text-center">' + Number(subtotalPokok.toFixed(3)) + '</td>' +
+                            '<td class="text-center">' + Number(subtotalEkstra.toFixed(3)) + '</td>' +
+                            '</tr>';
+                        // Reset akumulator untuk karyawan yang baru
+                        subtotalPokok = 0;
+                        subtotalEkstra = 0;
+                    }
+        
+                    // Update pelacak karyawan saat ini
+                    currentEmpId = ab.emp_id;
+                    currentEmpName = empName;
+        
                     let tHari = ab.tipe_hari || (ab.is_weekend ? 'Weekend' : 'Weekday'); 
                     let p = hitungPoinAkhir(ab); 
                     let isWknd = (tHari === 'Weekend' || tHari === 'Libur'); 
                     let jamNormal = isWknd ? (p.pokok * 6.25) : (p.pokok * 9.0); 
+        
+                    // Tambahkan poin absensi harian ini ke akumulator (keranjang)
+                    subtotalPokok += p.pokok;
+                    subtotalEkstra += p.ekstra;
                     
-                    // Singkat nama hari & tanggal (contoh: Sen, 20/06)
                     let dateObj = new Date(ab.date);
                     let dayName = dateObj.toLocaleDateString('id-ID', { weekday: 'short' }); 
-                    let dParts = ab.date.split('-'); // 2026-06-20
+                    let dParts = ab.date.split('-');
                     let shortDate = dayName + ', ' + dParts[2] + '/' + dParts[1];
-                    
-                    // Gabungkan In - Out
                     let inOut = (ab.clock_in || "-:-") + ' - ' + (ab.clock_out || "-:-");
                     
+                    // Render baris data harian
                     html += '<tr>' +
                         '<td class="text-center">' + shortDate + '</td>' +
-                        '<td><strong>' + empName + '</strong></td>' +
+                        '<td>' + empName + '</td>' +
                         '<td class="text-center">' + inOut + '</td>' +
                         '<td class="text-center">' + formatHours(jamNormal) + '</td>' +
                         '<td class="text-center">' + formatHours(p.lemburTotal) + '</td>' +
                         '<td class="text-center">' + Number(p.pokok.toFixed(3)) + '</td>' +
                         '<td class="text-center">' + Number(p.ekstra.toFixed(3)) + '</td>' +
                         '</tr>'; 
+                        
+                    // Jika ini adalah baris data yang paling terakhir dari seluruh tabel, cetak penutup totalnya
+                    if (index === filtered.length - 1) {
+                        html += '<tr class="subtotal-row">' +
+                            '<td colspan="5" class="text-right">Total Poin ' + currentEmpName + ' :</td>' +
+                            '<td class="text-center">' + Number(subtotalPokok.toFixed(3)) + '</td>' +
+                            '<td class="text-center">' + Number(subtotalEkstra.toFixed(3)) + '</td>' +
+                            '</tr>';
+                    }
                 }); 
             } 
             html += '</tbody></table></body></html>'; 
