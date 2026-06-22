@@ -635,22 +635,6 @@
             renderKaryawan();
         };
         
-        window.toggleSortPayroll = function(col) {
-            console.log("1. Judul kolom diklik:", col);
-            
-            if(payrollSortColumn === col) {
-                payrollSortOrder = payrollSortOrder === 'asc' ? 'desc' : 'asc';
-            } else { 
-                payrollSortColumn = col; 
-                payrollSortOrder = 'asc'; 
-            }
-            
-            console.log("2. Status Sorting Sekarang -> Kolom:", payrollSortColumn, "| Urutan:", payrollSortOrder);
-            
-            renderPayroll();
-            
-            console.log("3. Tabel selesai dirender ulang!");
-        };
         
         window.toggleSortKasbon = function(col) {
             if(sortKasbonCol === col) sortKasbonOrder = sortKasbonOrder === 'asc' ? 'desc' : 'asc';
@@ -1377,18 +1361,64 @@
         }
 
         window.filterPayroll = function() { let range = document.getElementById('date-range-payroll').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangePayroll.start = range[0]; dateRangePayroll.end = range[1] || range[0]; } renderPayroll(); };
+
+        // --- KODE SORTING PAYROLL (VERSI TERBARU ANTI-GAGAL) ---
+        window.PAYROLL_STATE = { col: 'name', order: 'asc' };
+        
+        window.toggleSortPayroll = function(col) {
+            if (window.PAYROLL_STATE.col === col) {
+                window.PAYROLL_STATE.order = window.PAYROLL_STATE.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                window.PAYROLL_STATE.col = col;
+                window.PAYROLL_STATE.order = 'asc';
+            }
+            renderPayroll();
+        };
+        
         function renderPayroll() {
+            // 1. Ambil State Sorting Saat Ini
+            let sortCol = window.PAYROLL_STATE.col;
+            let sortOrd = window.PAYROLL_STATE.order;
+        
+            // 2. Update Warna & Bentuk Ikon Panah
             let cols = ['name', 'pokok', 'ekstra', 'bonus', 'g_pokok', 'g_lembur', 'g_bonus', 'total'];
-            cols.forEach(c => { let icon = document.getElementById('sort-pay-' + c); if(icon) { icon.className = payrollSortColumn === c ? (payrollSortOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = payrollSortColumn === c ? "var(--primary)" : "var(--text-muted)"; } });
+            cols.forEach(c => {
+                let icon = document.getElementById('sort-pay-' + c);
+                if (icon) {
+                    icon.className = sortCol === c ? (sortOrd === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort";
+                    icon.style.color = sortCol === c ? "var(--primary)" : "var(--text-muted)";
+                }
+            });
         
-            let tbody = document.querySelector('#table-payroll tbody'); tbody.innerHTML = '';
-            let payrollData = {}; db_karyawan.forEach(emp => payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 });
-            db_absensi.filter(ab => ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end).forEach(ab => { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } });
+            // 3. Persiapkan Tabel
+            let tbody = document.querySelector('#table-payroll tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
         
-            let isBpjsMonth = false; let tempD = new Date(dateRangePayroll.start); let endD = new Date(dateRangePayroll.end); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); }
+            // 4. Kalkulasi Data Payroll
+            let payrollData = {};
+            db_karyawan.forEach(emp => payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 });
+            
+            db_absensi.filter(ab => ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end).forEach(ab => {
+                if (payrollData[ab.emp_id]) {
+                    let p = hitungPoinAkhir(ab);
+                    payrollData[ab.emp_id].totPokok += p.pokok;
+                    payrollData[ab.emp_id].totEkstra += p.ekstra;
+                }
+            });
+        
+            let isBpjsMonth = false;
+            let tempD = new Date(dateRangePayroll.start);
+            let endD = new Date(dateRangePayroll.end);
+            while (tempD <= endD) {
+                if (tempD.getDate() === 10) { isBpjsMonth = true; break; }
+                tempD.setDate(tempD.getDate() + 1);
+            }
         
             let processedList = Object.keys(payrollData).map(k => {
-                let e = payrollData[k].emp; let data = payrollData[k]; let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {};
+                let e = payrollData[k].emp;
+                let data = payrollData[k];
+                let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {};
                 let pPokok = b.poin_pokok_override !== null && b.poin_pokok_override !== undefined ? b.poin_pokok_override : data.totPokok;
                 let pEkstra = b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined ? b.poin_ekstra_override : data.totEkstra;
                 let pBonus = b.poin || 0;
@@ -1400,40 +1430,40 @@
                 return { e, data, pPokok, pEkstra, pBonus, gPokok, gLembur, gBonus, potBpjs, totGaji };
             });
         
-            if(currentPayrollFilterName) processedList = processedList.filter(item => item.e.name === currentPayrollFilterName);
-        
-            // 1. FILTER SEARCH
-            let q = (document.getElementById('search-payroll') ? document.getElementById('search-payroll').value.toLowerCase() : '');
-            if(q) {
+            // 5. Fitur Pencarian (Search)
+            let q = document.getElementById('search-payroll') ? document.getElementById('search-payroll').value.toLowerCase() : '';
+            if (q) {
                 processedList = processedList.filter(item => {
                     let searchString = `${item.e.name} ${item.gPokok} ${item.gLembur} ${item.totGaji}`.toLowerCase();
                     return searchString.includes(q);
                 });
             }
         
-            // 2. SORTING
-            processedList.sort((a,b) => {
+            // 6. Eksekusi Sorting Array
+            processedList.sort((a, b) => {
                 let res = 0;
-                if(payrollSortColumn === 'name') res = a.e.name.localeCompare(b.e.name);
-                else if(payrollSortColumn === 'pokok') res = a.pPokok - b.pPokok;
-                else if(payrollSortColumn === 'ekstra') res = a.pEkstra - b.pEkstra;
-                else if(payrollSortColumn === 'bonus') res = a.pBonus - b.pBonus;
-                else if(payrollSortColumn === 'g_pokok') res = a.gPokok - b.gPokok;
-                else if(payrollSortColumn === 'g_lembur') res = a.gLembur - b.gLembur;
-                else if(payrollSortColumn === 'g_bonus') res = a.gBonus - b.gBonus;
-                else if(payrollSortColumn === 'total') res = a.totGaji - b.totGaji;
-                return payrollSortOrder === 'asc' ? res : -res;
+                if (sortCol === 'name') res = a.e.name.localeCompare(b.e.name);
+                else if (sortCol === 'pokok') res = a.pPokok - b.pPokok;
+                else if (sortCol === 'ekstra') res = a.pEkstra - b.pEkstra;
+                else if (sortCol === 'bonus') res = a.pBonus - b.pBonus;
+                else if (sortCol === 'g_pokok') res = a.gPokok - b.gPokok;
+                else if (sortCol === 'g_lembur') res = a.gLembur - b.gLembur;
+                else if (sortCol === 'g_bonus') res = a.gBonus - b.gBonus;
+                else if (sortCol === 'total') res = a.totGaji - b.totGaji;
+                return sortOrd === 'asc' ? res : -res;
             });
         
-            // 3. RENDER TABEL
+            // 7. Render (Cetak ke Layar)
             let renderedCount = 0;
             processedList.forEach(item => {
-                if(item.data.totPokok === 0 && !currentPayrollFilterName) return; 
+                if (item.data.totPokok === 0 && !currentPayrollFilterName) return;
                 renderedCount++;
-                tbody.innerHTML += '<tr><td>'+item.e.name+'</td><td>'+item.pPokok.toFixed(3)+'</td><td>'+item.pEkstra.toFixed(3)+'</td><td>'+item.pBonus+'</td><td>'+formatRp(item.gPokok)+'</td><td>'+formatRp(item.gLembur)+'</td><td>'+formatRp(item.gBonus)+'</td>'+(item.potBpjs>0?'<td style="color:var(--danger)">'+formatRp(item.potBpjs)+'</td>':'<td>-</td>')+'<td><strong>'+formatRp(item.totGaji)+'</strong></td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openBonusModal('+item.e.id+', \''+item.e.name+'\', '+item.data.totPokok+', '+item.data.totEkstra+', '+(item.data.totPokok * item.e.gaji_per_poin_pokok)+')"><i class="fa-solid fa-pen"></i></button></td></tr>';
+                tbody.innerHTML += '<tr><td>' + item.e.name + '</td><td>' + item.pPokok.toFixed(3) + '</td><td>' + item.pEkstra.toFixed(3) + '</td><td>' + item.pBonus + '</td><td>' + formatRp(item.gPokok) + '</td><td>' + formatRp(item.gLembur) + '</td><td>' + formatRp(item.gBonus) + '</td>' + (item.potBpjs > 0 ? '<td style="color:var(--danger)">' + formatRp(item.potBpjs) + '</td>' : '<td>-</td>') + '<td><strong>' + formatRp(item.totGaji) + '</strong></td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openBonusModal(' + item.e.id + ', \'' + item.e.name + '\', ' + item.data.totPokok + ', ' + item.data.totEkstra + ', ' + (item.data.totPokok * item.e.gaji_per_poin_pokok) + ')"><i class="fa-solid fa-pen"></i></button></td></tr>';
             });
-            
-            if(renderedCount === 0) tbody.innerHTML = `<tr><td colspan="10" class="text-center">${q ? 'Data tidak ditemukan' : 'Tidak ada data untuk ditampilkan'}</td></tr>`;
+        
+            if (renderedCount === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center">${q ? 'Data tidak ditemukan' : 'Tidak ada data untuk ditampilkan'}</td></tr>`;
+            }
         }
 
         function renderKasbon() {
