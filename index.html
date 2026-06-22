@@ -616,7 +616,13 @@
 
     <script>
     var db_karyawan = []; var db_absensi = []; var db_bonus = {}; var db_kasbon = []; var db_angsuran = [];
-
+        // --- STATE VARIABEL FILTER & SORTING GLOBAL ---
+        let currentAbsensiFilterName = null; 
+        let currentPayrollFilterName = null;
+        
+        // Variabel Sorting Absensi & Payroll (Yang menyebabkan error tadi)
+        let absensiSortColumn = 'date'; let absensiSortOrder = 'asc';
+        let payrollSortColumn = 'name'; let payrollSortOrder = 'asc'; 
 
         // --- STATE VARIABEL SORTING ---
         let sortKaryawanCol = 'id', sortKaryawanOrder = 'asc';
