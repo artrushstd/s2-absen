@@ -49,6 +49,13 @@
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
         }
 
+        /* CSS UNTUK KOTAK PENCARIAN (SEARCH BAR) */
+        .search-wrapper { position: relative; display: flex; align-items: center; flex: 1; min-width: 250px; max-width: 400px; }
+        .search-wrapper i.fa-magnifying-glass { position: absolute; left: 12px; color: var(--text-muted); pointer-events: none; }
+        .search-wrapper input { width: 100%; padding-left: 36px !important; padding-right: 36px !important; }
+        .search-wrapper i.fa-xmark { position: absolute; right: 12px; color: var(--text-muted); cursor: pointer; display: none; padding: 4px; border-radius: 50%; transition: 0.2s; }
+        .search-wrapper i.fa-xmark:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-body); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; transition: background-color 0.3s, color 0.3s; }
 
@@ -316,6 +323,13 @@
                                 <button class="btn btn-primary" onclick="openKaryawanModal()"><i class="fa-solid fa-user-plus"></i> Tambah Karyawan</button>
                             </div>
                         </div>
+                        <div class="filter-bar">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="search-karyawan" class="input-control" placeholder="Cari nama, ID, jabatan..." oninput="handleSearchInput('karyawan')">
+                                <i class="fa-solid fa-xmark" id="clear-karyawan" onclick="clearSearch('karyawan')"></i>
+                            </div>
+                        </div>
                         <div class="table-container">
                             <table id="table-karyawan">
                                 <thead>
@@ -341,6 +355,11 @@
                 <!-- ================== PAGE: ABSENSI ================== -->
                 <div id="page-absensi" class="hidden">
                     <div class="card">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-absensi" class="input-control" placeholder="Cari nama, tgl, tipe hari..." oninput="handleSearchInput('absensi')">
+                            <i class="fa-solid fa-xmark" id="clear-absensi" onclick="clearSearch('absensi')"></i>
+                        </div>
                         <div class="filter-bar">
                             <input type="text" id="date-range-absensi" class="input-control" placeholder="Pilih Range Tanggal...">
                             <button class="btn btn-primary" onclick="filterAbsensi()"><i class="fa-solid fa-filter"></i> Filter</button>
@@ -378,6 +397,11 @@
                 <!-- ================== PAGE: PAYROLL ================== -->
                 <div id="page-payroll" class="hidden">
                     <div class="card">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-payroll" class="input-control" placeholder="Cari nama karyawan..." oninput="handleSearchInput('payroll')">
+                            <i class="fa-solid fa-xmark" id="clear-payroll" onclick="clearSearch('payroll')"></i>
+                        </div>
                         <div class="filter-bar">
                             <input type="text" id="date-range-payroll" class="input-control" placeholder="Pilih Range Tanggal...">
                             <button class="btn btn-primary" onclick="filterPayroll()"><i class="fa-solid fa-filter"></i> Hitung Payroll</button>
@@ -414,6 +438,13 @@
                             <div style="display: flex; gap: 10px;">
                                 <button class="btn btn-outline" onclick="openHistoryKasbon()"><i class="fa-solid fa-clock-rotate-left"></i> History Lunas</button>
                                 <button class="btn btn-primary" onclick="openTambahKasbon()"><i class="fa-solid fa-plus"></i> Tambah Kasbon Baru</button>
+                            </div>
+                        </div>
+                        <div class="filter-bar">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="search-kasbon" class="input-control" placeholder="Cari nama atau tgl pinjaman..." oninput="handleSearchInput('kasbon')">
+                                <i class="fa-solid fa-xmark" id="clear-kasbon" onclick="clearSearch('kasbon')"></i>
                             </div>
                         </div>
                         <div class="table-container">
@@ -617,6 +648,27 @@
         };    
 
 
+        // --- FUNGSI PELATUK PENCARIAN (SEARCH) ---
+        window.handleSearchInput = function(page) {
+            let input = document.getElementById('search-' + page);
+            let clearBtn = document.getElementById('clear-' + page);
+            
+            // Tampilkan / Sembunyikan tombol X
+            if(input.value.length > 0) clearBtn.style.display = 'block';
+            else clearBtn.style.display = 'none';
+        
+            // Panggil ulang render agar tabel terfilter secara realtime
+            if(page === 'karyawan') renderKaryawan();
+            else if(page === 'absensi') renderAbsensi();
+            else if(page === 'payroll') renderPayroll();
+            else if(page === 'kasbon') renderKasbon();
+        };
+        
+        window.clearSearch = function(page) {
+            document.getElementById('search-' + page).value = '';
+            handleSearchInput(page); // Panggil fungsi di atas untuk mereset tampilan
+        };
+        
         
     try {
         const authUsers = { 'z008': { role: 'owner', name: 'Hendy' }, 'mei141414': { role: 'admin', name: 'HR Mei' }, 'fania14': { role: 'admin', name: 'Manajer Aji' } };
@@ -902,9 +954,22 @@
             cols.forEach(c => { let icon = document.getElementById('sort-kar-' + c); if(icon) { icon.className = sortKaryawanCol === c ? (sortKaryawanOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = sortKaryawanCol === c ? "var(--primary)" : "var(--text-muted)"; } });
         
             let tbody = document.querySelector('#table-karyawan tbody'); tbody.innerHTML = '';
-            if(db_karyawan.length === 0) { tbody.innerHTML = '<tr><td colspan="10" class="text-center">Data karyawan kosong</td></tr>'; return; }
+            
+            // 1. FILTER SEARCH
+            let q = (document.getElementById('search-karyawan') ? document.getElementById('search-karyawan').value.toLowerCase() : '');
+            let filteredDb = db_karyawan.filter(emp => {
+                if(!q) return true;
+                let searchString = `${emp.id} ${emp.id_karyawan||''} ${emp.name} ${emp.jabatan||''} ${emp.status_pegawai||''} ${emp.status_bpjs||''}`.toLowerCase();
+                return searchString.includes(q);
+            });
         
-            let sorted = [...db_karyawan];
+            if(filteredDb.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center">${q ? 'Data tidak ditemukan' : 'Data karyawan kosong'}</td></tr>`; 
+                return; 
+            }
+        
+            // 2. SORTING
+            let sorted = [...filteredDb];
             sorted.sort((a,b) => {
                 let res = 0;
                 if(sortKaryawanCol === 'id') res = a.id - b.id;
@@ -916,7 +981,7 @@
                 return sortKaryawanOrder === 'asc' ? res : -res;
             });
         
-            const todayDate = new Date();
+            // 3. RENDER TABEL
             sorted.forEach(function(emp) {
                 let activeSP = getActiveSPLevel(emp);
                 let spBadge = activeSP === 'NONE' ? '<span class="badge badge-active">NONE</span>' : '<span class="badge badge-inactive">'+activeSP+'</span>';
@@ -1246,18 +1311,31 @@
             cols.forEach(c => { let icon = document.getElementById('sort-abs-' + c); if (icon) { icon.className = absensiSortColumn === c ? (absensiSortOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = absensiSortColumn === c ? "var(--primary)" : "var(--text-muted)"; } });
             
             let tbody = document.querySelector('#table-absensi tbody'); tbody.innerHTML = ''; let totP = 0; let totE = 0;
+            
+            // Filter by Date & Name Filter
             let filtered = db_absensi.filter(ab => { let emp = db_karyawan.find(k => k.id == ab.emp_id); let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; });
             
-            if(filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada absensi</td></tr>'; document.getElementById('abs-tot-pokok').innerText = "0"; document.getElementById('abs-tot-ekstra').innerText = "0"; return; }
-        
-            // Hitung poin dulu sebelum sorting
             let processedList = filtered.map(ab => {
-                let emp = db_karyawan.find(k=>k.id==ab.emp_id);
-                let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday');
-                let p = hitungPoinAkhir(ab);
+                let emp = db_karyawan.find(k=>k.id==ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); let p = hitungPoinAkhir(ab);
                 return { ab, name: emp?emp.name:ab.emp_id.toString(), tHari, pokok: p.pokok, ekstra: p.ekstra, cin: ab.clock_in||'', cout: ab.clock_out||'' };
             });
         
+            // 1. FILTER SEARCH
+            let q = (document.getElementById('search-absensi') ? document.getElementById('search-absensi').value.toLowerCase() : '');
+            if(q) {
+                processedList = processedList.filter(item => {
+                    let searchString = `${item.name} ${item.ab.date} ${item.cin} ${item.cout} ${item.tHari}`.toLowerCase();
+                    return searchString.includes(q);
+                });
+            }
+        
+            if(processedList.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center">${q ? 'Data tidak ditemukan' : 'Tidak ada absensi'}</td></tr>`; 
+                document.getElementById('abs-tot-pokok').innerText = "0"; document.getElementById('abs-tot-ekstra').innerText = "0"; 
+                return; 
+            }
+        
+            // 2. SORTING
             processedList.sort((a,b) => { 
                 let res = 0; 
                 if(absensiSortColumn === 'date') res = new Date(a.ab.date) - new Date(b.ab.date); 
@@ -1269,6 +1347,7 @@
                 return absensiSortOrder === 'asc' ? res : -res; 
             });
         
+            // 3. RENDER TABEL
             processedList.forEach(item => { 
                 totP += item.pokok; totE += item.ekstra; 
                 let tHariBadge = item.tHari === 'Libur' ? '<span class="badge badge-warning">Libur</span>' : (item.tHari === 'Weekend' ? '<span class="badge badge-inactive">Weekend</span>' : '<span class="badge badge-active">Weekday</span>');
@@ -1306,6 +1385,16 @@
         
             if(currentPayrollFilterName) processedList = processedList.filter(item => item.e.name === currentPayrollFilterName);
         
+            // 1. FILTER SEARCH
+            let q = (document.getElementById('search-payroll') ? document.getElementById('search-payroll').value.toLowerCase() : '');
+            if(q) {
+                processedList = processedList.filter(item => {
+                    let searchString = `${item.e.name} ${item.gPokok} ${item.gLembur} ${item.totGaji}`.toLowerCase();
+                    return searchString.includes(q);
+                });
+            }
+        
+            // 2. SORTING
             processedList.sort((a,b) => {
                 let res = 0;
                 if(payrollSortColumn === 'name') res = a.e.name.localeCompare(b.e.name);
@@ -1319,6 +1408,7 @@
                 return payrollSortOrder === 'asc' ? res : -res;
             });
         
+            // 3. RENDER TABEL
             let renderedCount = 0;
             processedList.forEach(item => {
                 if(item.data.totPokok === 0 && !currentPayrollFilterName) return; 
@@ -1326,7 +1416,7 @@
                 tbody.innerHTML += '<tr><td>'+item.e.name+'</td><td>'+item.pPokok.toFixed(3)+'</td><td>'+item.pEkstra.toFixed(3)+'</td><td>'+item.pBonus+'</td><td>'+formatRp(item.gPokok)+'</td><td>'+formatRp(item.gLembur)+'</td><td>'+formatRp(item.gBonus)+'</td>'+(item.potBpjs>0?'<td style="color:var(--danger)">'+formatRp(item.potBpjs)+'</td>':'<td>-</td>')+'<td><strong>'+formatRp(item.totGaji)+'</strong></td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openBonusModal('+item.e.id+', \''+item.e.name+'\', '+item.data.totPokok+', '+item.data.totEkstra+', '+(item.data.totPokok * item.e.gaji_per_poin_pokok)+')"><i class="fa-solid fa-pen"></i></button></td></tr>';
             });
             
-            if(renderedCount === 0) tbody.innerHTML = '<tr><td colspan="10" class="text-center">Tidak ada data untuk ditampilkan</td></tr>';
+            if(renderedCount === 0) tbody.innerHTML = `<tr><td colspan="10" class="text-center">${q ? 'Data tidak ditemukan' : 'Tidak ada data untuk ditampilkan'}</td></tr>`;
         }
 
         function renderKasbon() {
@@ -1346,6 +1436,21 @@
         
             let activeKasbon = processedList.filter(item => item.sisa > 0);
         
+            // 1. FILTER SEARCH
+            let q = (document.getElementById('search-kasbon') ? document.getElementById('search-kasbon').value.toLowerCase() : '');
+            if(q) {
+                activeKasbon = activeKasbon.filter(item => {
+                    let searchString = `${item.name} ${item.tanggal} ${item.total} ${item.sisa}`.toLowerCase();
+                    return searchString.includes(q);
+                });
+            }
+        
+            if (activeKasbon.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center">${q ? 'Data tidak ditemukan' : 'Tidak ada data kasbon aktif'}</td></tr>`;
+                return;
+            }
+        
+            // 2. SORTING
             activeKasbon.sort((a,b) => {
                 let res = 0;
                 if(sortKasbonCol === 'name') res = a.name.localeCompare(b.name);
@@ -1355,11 +1460,7 @@
                 return sortKasbonOrder === 'asc' ? res : -res;
             });
         
-            if (activeKasbon.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data kasbon aktif</td></tr>';
-                return;
-            }
-        
+            // 3. RENDER TABEL
             activeKasbon.forEach(item => {
                 tbody.innerHTML += '<tr><td><strong>'+item.name+'</strong></td><td>'+item.tanggal+'</td><td>'+formatRp(item.total)+'</td><td><span class="badge badge-inactive clickable-name" onclick="openKasbonDetail('+item.k.id+')">'+formatRp(item.sisa)+'</span></td><td><button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKasbon('+item.k.id+', false)" title="Hapus Kasbon"><i class="fa-solid fa-trash"></i></button></td></tr>';
             });
