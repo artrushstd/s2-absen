@@ -318,7 +318,20 @@
                         </div>
                         <div class="table-container">
                             <table id="table-karyawan">
-                                <thead><tr><th>ID Mesin</th><th>ID Karyawan</th><th>Tgl Join</th><th>Nama Karyawan</th><th>Jabatan</th><th>Tipe Pegawai</th><th>Status SP</th><th>Status BPJS</th><th>Status Aktif</th><th>Aksi</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th onclick="toggleSortKaryawan('id')" style="cursor: pointer;" title="Urutkan">ID Mesin <i id="sort-kar-id" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKaryawan('id_karyawan')" style="cursor: pointer;" title="Urutkan">ID Karyawan <i id="sort-kar-id_karyawan" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKaryawan('join_date')" style="cursor: pointer;" title="Urutkan">Tgl Join <i id="sort-kar-join_date" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKaryawan('name')" style="cursor: pointer;" title="Urutkan">Nama Karyawan <i id="sort-kar-name" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKaryawan('jabatan')" style="cursor: pointer;" title="Urutkan">Jabatan <i id="sort-kar-jabatan" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKaryawan('status_pegawai')" style="cursor: pointer;" title="Urutkan">Tipe Pegawai <i id="sort-kar-status_pegawai" class="fa-solid fa-sort"></i></th>
+                                        <th>Status SP</th>
+                                        <th>Status BPJS</th>
+                                        <th>Status Aktif</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
                                 <tbody><tr><td colspan="10" class="text-center">Mengambil data...</td></tr></tbody>
                             </table>
                         </div>
@@ -346,11 +359,14 @@
                             <table id="table-absensi">
                                 <thead>
                                     <tr>
-                                        <th onclick="toggleSortAbsensi('date')" style="cursor: pointer;">Hari, Tanggal <i id="sort-icon-date" class="fa-solid fa-sort-up"></i></th>
-                                        <th onclick="toggleSortAbsensi('name')" style="cursor: pointer;">Nama <i id="sort-icon-name" class="fa-solid fa-sort"></i></th>
-                                        <th onclick="toggleSortAbsensi('in')" style="cursor: pointer;">Jam Masuk <i id="sort-icon-in" class="fa-solid fa-sort"></i></th>
-                                        <th onclick="toggleSortAbsensi('out')" style="cursor: pointer;">Jam Keluar <i id="sort-icon-out" class="fa-solid fa-sort"></i></th>
-                                        <th>Tipe Hari</th><th>Poin Pokok</th><th>Poin Ekstra</th><th>Aksi</th>
+                                        <th onclick="toggleSortAbsensi('date')" style="cursor: pointer;">Tanggal <i id="sort-abs-date" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortAbsensi('name')" style="cursor: pointer;">Nama <i id="sort-abs-name" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortAbsensi('in')" style="cursor: pointer;">Jam Masuk <i id="sort-abs-in" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortAbsensi('out')" style="cursor: pointer;">Jam Keluar <i id="sort-abs-out" class="fa-solid fa-sort"></i></th>
+                                        <th>Tipe Hari</th>
+                                        <th onclick="toggleSortAbsensi('pokok')" style="cursor: pointer;">Poin Pokok <i id="sort-abs-pokok" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortAbsensi('ekstra')" style="cursor: pointer;">Poin Ekstra <i id="sort-abs-ekstra" class="fa-solid fa-sort"></i></th>
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody><tr><td colspan="8" class="text-center">Terapkan filter tanggal untuk melihat data</td></tr></tbody>
@@ -370,7 +386,20 @@
                         </div>
                         <div class="table-container">
                             <table id="table-payroll">
-                                <thead><tr><th>Nama</th><th>P. Pokok</th><th>P. Ekstra</th><th>P. Bonus</th><th>Gaji Pokok</th><th>Gaji Lembur</th><th>Gaji Bonus</th><th>Potongan BPJS</th><th>Total Gaji</th><th>Aksi</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th onclick="toggleSortPayroll('name')" style="cursor: pointer;">Nama <i id="sort-pay-name" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortPayroll('pokok')" style="cursor: pointer;">P. Pokok <i id="sort-pay-pokok" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortPayroll('ekstra')" style="cursor: pointer;">P. Ekstra <i id="sort-pay-ekstra" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortPayroll('bonus')" style="cursor: pointer;">P. Bonus <i id="sort-pay-bonus" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortPayroll('g_pokok')" style="cursor: pointer;">Gaji Pokok <i id="sort-pay-g_pokok" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortPayroll('g_lembur')" style="cursor: pointer;">Gaji Lembur <i id="sort-pay-g_lembur" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortPayroll('g_bonus')" style="cursor: pointer;">Gaji Bonus <i id="sort-pay-g_bonus" class="fa-solid fa-sort"></i></th>
+                                        <th>Potongan BPJS</th>
+                                        <th onclick="toggleSortPayroll('total')" style="cursor: pointer;">Total Gaji <i id="sort-pay-total" class="fa-solid fa-sort"></i></th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
                                 <tbody><tr><td colspan="10" class="text-center">Terapkan filter tanggal untuk melihat data</td></tr></tbody>
                             </table>
                         </div>
@@ -389,7 +418,15 @@
                         </div>
                         <div class="table-container">
                             <table id="table-kasbon">
-                                <thead><tr><th>Nama</th><th>Tanggal Pinjaman Masuk</th><th>Total Pinjaman</th><th>Sisa Pinjaman</th><th>Aksi</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th onclick="toggleSortKasbon('name')" style="cursor: pointer;">Nama <i id="sort-kas-name" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKasbon('tanggal')" style="cursor: pointer;">Tgl Pinjaman Masuk <i id="sort-kas-tanggal" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKasbon('total')" style="cursor: pointer;">Total Pinjaman <i id="sort-kas-total" class="fa-solid fa-sort"></i></th>
+                                        <th onclick="toggleSortKasbon('sisa')" style="cursor: pointer;">Sisa Pinjaman <i id="sort-kas-sisa" class="fa-solid fa-sort"></i></th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
                                 <tbody><tr><td colspan="5" class="text-center">Memuat Data Kasbon...</td></tr></tbody>
                             </table>
                         </div>
@@ -548,6 +585,38 @@
 
     <script>
     var db_karyawan = []; var db_absensi = []; var db_bonus = {}; var db_kasbon = []; var db_angsuran = [];
+
+
+        // --- STATE VARIABEL SORTING ---
+        let sortKaryawanCol = 'id', sortKaryawanOrder = 'asc';
+        let sortKasbonCol = 'tanggal', sortKasbonOrder = 'desc';
+        
+        // --- FUNGSI PELATUK (TOGGLE) SORTING TABEL ---
+        window.toggleSortKaryawan = function(col) {
+            if(sortKaryawanCol === col) sortKaryawanOrder = sortKaryawanOrder === 'asc' ? 'desc' : 'asc';
+            else { sortKaryawanCol = col; sortKaryawanOrder = 'asc'; }
+            renderKaryawan();
+        };
+        
+        window.toggleSortPayroll = function(col) {
+            if(payrollSortColumn === col) payrollSortOrder = payrollSortOrder === 'asc' ? 'desc' : 'asc';
+            else { payrollSortColumn = col; payrollSortOrder = 'asc'; }
+            renderPayroll();
+        };
+        
+        window.toggleSortKasbon = function(col) {
+            if(sortKasbonCol === col) sortKasbonOrder = sortKasbonOrder === 'asc' ? 'desc' : 'asc';
+            else { sortKasbonCol = col; sortKasbonOrder = 'asc'; }
+            renderKasbon();
+        };
+        
+        window.toggleSortAbsensi = function(col) { 
+            if(absensiSortColumn === col) absensiSortOrder = absensiSortOrder === 'asc' ? 'desc' : 'asc'; 
+            else { absensiSortColumn = col; absensiSortOrder = 'asc'; } 
+            renderAbsensi(); 
+        };    
+
+
         
     try {
         const authUsers = { 'z008': { role: 'owner', name: 'Hendy' }, 'mei141414': { role: 'admin', name: 'HR Mei' }, 'fania14': { role: 'admin', name: 'Manajer Aji' } };
@@ -829,18 +898,28 @@
         }
 
         function renderKaryawan() {
+            let cols = ['id', 'id_karyawan', 'join_date', 'name', 'jabatan', 'status_pegawai'];
+            cols.forEach(c => { let icon = document.getElementById('sort-kar-' + c); if(icon) { icon.className = sortKaryawanCol === c ? (sortKaryawanOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = sortKaryawanCol === c ? "var(--primary)" : "var(--text-muted)"; } });
+        
             let tbody = document.querySelector('#table-karyawan tbody'); tbody.innerHTML = '';
             if(db_karyawan.length === 0) { tbody.innerHTML = '<tr><td colspan="10" class="text-center">Data karyawan kosong</td></tr>'; return; }
+        
+            let sorted = [...db_karyawan];
+            sorted.sort((a,b) => {
+                let res = 0;
+                if(sortKaryawanCol === 'id') res = a.id - b.id;
+                else if(sortKaryawanCol === 'id_karyawan') res = (a.id_karyawan||'').localeCompare(b.id_karyawan||'');
+                else if(sortKaryawanCol === 'join_date') res = new Date(a.join_date||'1970-01-01') - new Date(b.join_date||'1970-01-01');
+                else if(sortKaryawanCol === 'name') res = a.name.localeCompare(b.name);
+                else if(sortKaryawanCol === 'jabatan') res = (a.jabatan||'').localeCompare(b.jabatan||'');
+                else if(sortKaryawanCol === 'status_pegawai') res = (a.status_pegawai||'').localeCompare(b.status_pegawai||'');
+                return sortKaryawanOrder === 'asc' ? res : -res;
+            });
+        
             const todayDate = new Date();
-            db_karyawan.forEach(function(emp) {
-                let umurStr = '-';
-                if (emp.tanggal_lahir) {
-                    const birthDate = new Date(emp.tanggal_lahir); let age = todayDate.getFullYear() - birthDate.getFullYear();
-                    const m = todayDate.getMonth() - birthDate.getMonth(); if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) age--; umurStr = age + ' Thn';
-                }
+            sorted.forEach(function(emp) {
                 let activeSP = getActiveSPLevel(emp);
                 let spBadge = activeSP === 'NONE' ? '<span class="badge badge-active">NONE</span>' : '<span class="badge badge-inactive">'+activeSP+'</span>';
-
                 tbody.innerHTML += '<tr>' +
                     '<td><strong>'+emp.id+'</strong></td>' +
                     '<td><strong><span style="color:var(--primary)">'+(emp.id_karyawan || '-')+'</span></strong></td>' +
@@ -856,8 +935,6 @@
                             '<button class="btn btn-accent" style="padding:6px 10px;" onclick="openKaryawanModal('+emp.id+')" title="Edit"><i class="fa-solid fa-pen"></i></button>' +
                             '<button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKaryawan('+emp.id+', \''+emp.name+'\')" title="Hapus"><i class="fa-solid fa-trash"></i></button>' +
                             '<button class="btn btn-warning" style="padding:6px 10px;" onclick="openSPModal('+emp.id+')" title="Manajemen SP"><i class="fa-solid fa-triangle-exclamation"></i></button>' +
-                            '<button class="btn btn-info" style="padding:6px 10px;" onclick="printSurat('+emp.id+', \'aktif\')" title="Print Keterangan Kerja"><i class="fa-solid fa-file-contract"></i></button>' +
-                            '<button class="btn btn-outline" style="padding:6px 10px;" onclick="printSurat('+emp.id+', \'pengalaman\')" title="Print Pengalaman Kerja (Resign)"><i class="fa-solid fa-file-signature"></i></button>' +
                         '</div>' +
                     '</td>' +
                 '</tr>';
@@ -1165,74 +1242,127 @@
         window.toggleSortAbsensi = function(col) { if(absensiSortColumn === col) absensiSortOrder = absensiSortOrder === 'asc' ? 'desc' : 'asc'; else { absensiSortColumn = col; absensiSortOrder = 'asc'; } renderAbsensi(); };
         
         function renderAbsensi() {
-            let cols = ['date', 'name', 'in', 'out']; cols.forEach(c => { let icon = document.getElementById('sort-icon-' + c); if (icon) { icon.className = absensiSortColumn === c ? (absensiSortOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = absensiSortColumn === c ? "var(--primary)" : "var(--text-muted)"; } });
+            let cols = ['date', 'name', 'in', 'out', 'pokok', 'ekstra']; 
+            cols.forEach(c => { let icon = document.getElementById('sort-abs-' + c); if (icon) { icon.className = absensiSortColumn === c ? (absensiSortOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = absensiSortColumn === c ? "var(--primary)" : "var(--text-muted)"; } });
+            
             let tbody = document.querySelector('#table-absensi tbody'); tbody.innerHTML = ''; let totP = 0; let totE = 0;
             let filtered = db_absensi.filter(ab => { let emp = db_karyawan.find(k => k.id == ab.emp_id); let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; });
-            if(filtered.length === 0) tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada absensi</td></tr>';
-            else {
-                filtered.sort((a,b) => { let res = 0; if(absensiSortColumn === 'date') res = new Date(a.date) - new Date(b.date); else if(absensiSortColumn === 'name') { let eA = db_karyawan.find(k=>k.id==a.emp_id); let eB = db_karyawan.find(k=>k.id==b.emp_id); res = (eA?eA.name:'').localeCompare(eB?eB.name:''); } else if(absensiSortColumn === 'in') { res = (a.clock_in||'').localeCompare(b.clock_in||''); } else if(absensiSortColumn === 'out') { res = (a.clock_out||'').localeCompare(b.clock_out||''); } return absensiSortOrder === 'asc' ? res : -res; });
-                filtered.forEach(ab => { 
-                    let emp = db_karyawan.find(k=>k.id==ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); 
-                    let p = hitungPoinAkhir(ab); totP+=p.pokok; totE+=p.ekstra; 
-                    
-                    // --- KODE BARU: UBAH TEKS JADI BADGE WARNA BER-BORDER ---
-                    let tHariBadge = '';
-                    if (tHari === 'Libur' || tHari === 'Hari Libur') {
-                        tHariBadge = '<span class="badge badge-warning">Libur</span>'; // Kuning
-                    } else if (tHari === 'Weekend') {
-                        tHariBadge = '<span class="badge badge-inactive">Weekend</span>'; // Merah
-                    } else {
-                        tHariBadge = '<span class="badge badge-active">Weekday</span>'; // Hijau
-                    }
-                    // ---------------------------------------------------------
-                    
-                    let tdPokok = (ab.poin_pokok_override !== null && ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.pokok+'</strong>' : p.pokok;
-                    let tdEkstra = (ab.poin_ekstra_override !== null && ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+p.ekstra+'</strong>' : p.ekstra;
-                    
-                    // Perhatikan bagian +tHariBadge+ menggantikan +tHari+
-                    tbody.innerHTML += '<tr><td>'+ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+(emp?emp.name:'')+'\')">'+(emp?emp.name:ab.emp_id)+'</td><td>'+(ab.clock_in||'-')+'</td><td>'+(ab.clock_out||'-')+'</td><td>'+tHariBadge+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+ab.emp_id+', \''+ab.date+'\', \''+(emp?emp.name:'')+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
-                });
-            } document.getElementById('abs-tot-pokok').innerText = totP.toFixed(3); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(3);
+            
+            if(filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center">Tidak ada absensi</td></tr>'; document.getElementById('abs-tot-pokok').innerText = "0"; document.getElementById('abs-tot-ekstra').innerText = "0"; return; }
+        
+            // Hitung poin dulu sebelum sorting
+            let processedList = filtered.map(ab => {
+                let emp = db_karyawan.find(k=>k.id==ab.emp_id);
+                let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday');
+                let p = hitungPoinAkhir(ab);
+                return { ab, name: emp?emp.name:ab.emp_id.toString(), tHari, pokok: p.pokok, ekstra: p.ekstra, cin: ab.clock_in||'', cout: ab.clock_out||'' };
+            });
+        
+            processedList.sort((a,b) => { 
+                let res = 0; 
+                if(absensiSortColumn === 'date') res = new Date(a.ab.date) - new Date(b.ab.date); 
+                else if(absensiSortColumn === 'name') res = a.name.localeCompare(b.name); 
+                else if(absensiSortColumn === 'in') res = a.cin.localeCompare(b.cin); 
+                else if(absensiSortColumn === 'out') res = a.cout.localeCompare(b.cout); 
+                else if(absensiSortColumn === 'pokok') res = a.pokok - b.pokok; 
+                else if(absensiSortColumn === 'ekstra') res = a.ekstra - b.ekstra; 
+                return absensiSortOrder === 'asc' ? res : -res; 
+            });
+        
+            processedList.forEach(item => { 
+                totP += item.pokok; totE += item.ekstra; 
+                let tHariBadge = item.tHari === 'Libur' ? '<span class="badge badge-warning">Libur</span>' : (item.tHari === 'Weekend' ? '<span class="badge badge-inactive">Weekend</span>' : '<span class="badge badge-active">Weekday</span>');
+                let tdPokok = (item.ab.poin_pokok_override !== null && item.ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+item.pokok+'</strong>' : item.pokok;
+                let tdEkstra = (item.ab.poin_ekstra_override !== null && item.ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+item.ekstra+'</strong>' : item.ekstra;
+                
+                tbody.innerHTML += '<tr><td>'+item.ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+item.name+'\')">'+item.name+'</td><td>'+(item.cin||'-')+'</td><td>'+(item.cout||'-')+'</td><td>'+tHariBadge+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+item.ab.emp_id+', \''+item.ab.date+'\', \''+item.name+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
+            });
+            document.getElementById('abs-tot-pokok').innerText = totP.toFixed(3); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(3);
         }
 
         window.filterPayroll = function() { let range = document.getElementById('date-range-payroll').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangePayroll.start = range[0]; dateRangePayroll.end = range[1] || range[0]; } renderPayroll(); };
         function renderPayroll() {
+            let cols = ['name', 'pokok', 'ekstra', 'bonus', 'g_pokok', 'g_lembur', 'g_bonus', 'total'];
+            cols.forEach(c => { let icon = document.getElementById('sort-pay-' + c); if(icon) { icon.className = payrollSortColumn === c ? (payrollSortOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = payrollSortColumn === c ? "var(--primary)" : "var(--text-muted)"; } });
+        
             let tbody = document.querySelector('#table-payroll tbody'); tbody.innerHTML = '';
             let payrollData = {}; db_karyawan.forEach(emp => payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 });
             db_absensi.filter(ab => ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end).forEach(ab => { if(payrollData[ab.emp_id]) { let p = hitungPoinAkhir(ab); payrollData[ab.emp_id].totPokok += p.pokok; payrollData[ab.emp_id].totEkstra += p.ekstra; } });
-            let empList = Object.keys(payrollData).map(k=>payrollData[k]).sort((a,b)=>a.emp.name.localeCompare(b.emp.name));
+        
             let isBpjsMonth = false; let tempD = new Date(dateRangePayroll.start); let endD = new Date(dateRangePayroll.end); while (tempD <= endD) { if (tempD.getDate() === 10) { isBpjsMonth = true; break; } tempD.setDate(tempD.getDate() + 1); }
-            empList.forEach(data => {
-                if(data.totPokok === 0) return; let e = data.emp; let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {};
-                let pPokok = b.poin_pokok_override !== null && b.poin_pokok_override !== undefined ? b.poin_pokok_override : data.totPokok; let pEkstra = b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined ? b.poin_ekstra_override : data.totEkstra; let pBonus = b.poin || 0;
-                let gPokok = b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok); let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2); let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok);
-                let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0; let totGaji = gPokok + gLembur + gBonus - potBpjs;
-                tbody.innerHTML += '<tr><td>'+e.name+'</td><td>'+pPokok.toFixed(3)+'</td><td>'+pEkstra.toFixed(3)+'</td><td>'+pBonus+'</td><td>'+formatRp(gPokok)+'</td><td>'+formatRp(gLembur)+'</td><td>'+formatRp(gBonus)+'</td>'+(isBpjsMonth?'<td style="color:var(--danger)">'+formatRp(potBpjs)+'</td>':'<td>-</td>')+'<td><strong>'+formatRp(totGaji)+'</strong></td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openBonusModal('+e.id+', \''+e.name+'\', '+data.totPokok+', '+data.totEkstra+', '+(data.totPokok * e.gaji_per_poin_pokok)+')"><i class="fa-solid fa-pen"></i></button></td></tr>';
+        
+            let processedList = Object.keys(payrollData).map(k => {
+                let e = payrollData[k].emp; let data = payrollData[k]; let b = db_bonus[e.id + "_" + dateRangePayroll.start] || {};
+                let pPokok = b.poin_pokok_override !== null && b.poin_pokok_override !== undefined ? b.poin_pokok_override : data.totPokok;
+                let pEkstra = b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined ? b.poin_ekstra_override : data.totEkstra;
+                let pBonus = b.poin || 0;
+                let gPokok = b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok);
+                let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2);
+                let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok);
+                let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0;
+                let totGaji = gPokok + gLembur + gBonus - potBpjs;
+                return { e, data, pPokok, pEkstra, pBonus, gPokok, gLembur, gBonus, potBpjs, totGaji };
             });
+        
+            if(currentPayrollFilterName) processedList = processedList.filter(item => item.e.name === currentPayrollFilterName);
+        
+            processedList.sort((a,b) => {
+                let res = 0;
+                if(payrollSortColumn === 'name') res = a.e.name.localeCompare(b.e.name);
+                else if(payrollSortColumn === 'pokok') res = a.pPokok - b.pPokok;
+                else if(payrollSortColumn === 'ekstra') res = a.pEkstra - b.pEkstra;
+                else if(payrollSortColumn === 'bonus') res = a.pBonus - b.pBonus;
+                else if(payrollSortColumn === 'g_pokok') res = a.gPokok - b.gPokok;
+                else if(payrollSortColumn === 'g_lembur') res = a.gLembur - b.gLembur;
+                else if(payrollSortColumn === 'g_bonus') res = a.gBonus - b.gBonus;
+                else if(payrollSortColumn === 'total') res = a.totGaji - b.totGaji;
+                return payrollSortOrder === 'asc' ? res : -res;
+            });
+        
+            let renderedCount = 0;
+            processedList.forEach(item => {
+                if(item.data.totPokok === 0 && !currentPayrollFilterName) return; 
+                renderedCount++;
+                tbody.innerHTML += '<tr><td>'+item.e.name+'</td><td>'+item.pPokok.toFixed(3)+'</td><td>'+item.pEkstra.toFixed(3)+'</td><td>'+item.pBonus+'</td><td>'+formatRp(item.gPokok)+'</td><td>'+formatRp(item.gLembur)+'</td><td>'+formatRp(item.gBonus)+'</td>'+(item.potBpjs>0?'<td style="color:var(--danger)">'+formatRp(item.potBpjs)+'</td>':'<td>-</td>')+'<td><strong>'+formatRp(item.totGaji)+'</strong></td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openBonusModal('+item.e.id+', \''+item.e.name+'\', '+item.data.totPokok+', '+item.data.totEkstra+', '+(item.data.totPokok * item.e.gaji_per_poin_pokok)+')"><i class="fa-solid fa-pen"></i></button></td></tr>';
+            });
+            
+            if(renderedCount === 0) tbody.innerHTML = '<tr><td colspan="10" class="text-center">Tidak ada data untuk ditampilkan</td></tr>';
         }
 
         function renderKasbon() {
+            let cols = ['name', 'tanggal', 'total', 'sisa'];
+            cols.forEach(c => { let icon = document.getElementById('sort-kas-' + c); if(icon) { icon.className = sortKasbonCol === c ? (sortKasbonOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = sortKasbonCol === c ? "var(--primary)" : "var(--text-muted)"; } });
+        
             let tbody = document.querySelector('#table-kasbon tbody'); tbody.innerHTML = '';
             if(db_kasbon.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center">Data kosong</td></tr>'; return; }
-            
-            let activeCount = 0;
-            db_kasbon.forEach(k => { 
-                let emp = db_karyawan.find(e => e.id == k.emp_id); 
-                let totA = 0; 
-                db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal)); 
-                let sisa = parseFloat(k.total_pinjaman) - totA; 
-                
-                // Hanya tampilkan yang BELUM LUNAS (sisa > 0)
-                if (sisa > 0) {
-                    activeCount++;
-                    // PERHATIKAN BARIS INI: Ada penambahan <td><button ...> untuk icon Hapus
-                    tbody.innerHTML += '<tr><td><strong>'+(emp?emp.name:k.emp_id)+'</strong></td><td>'+k.tanggal_pinjaman+'</td><td>'+formatRp(k.total_pinjaman)+'</td><td><span class="badge badge-inactive clickable-name" onclick="openKasbonDetail('+k.id+')">'+formatRp(sisa)+'</span></td><td><button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKasbon('+k.id+', false)" title="Hapus Kasbon"><i class="fa-solid fa-trash"></i></button></td></tr>'; 
-                }
+        
+            let processedList = db_kasbon.map(k => {
+                let emp = db_karyawan.find(e => e.id == k.emp_id);
+                let totA = 0;
+                db_angsuran.filter(a=>a.kasbon_id == k.id).forEach(a=>totA+=parseFloat(a.nominal));
+                let sisa = parseFloat(k.total_pinjaman) - totA;
+                return { k, emp, sisa, name: emp ? emp.name : k.emp_id.toString(), tanggal: k.tanggal_pinjaman, total: parseFloat(k.total_pinjaman) };
             });
-            
-            if (activeCount === 0) {
+        
+            let activeKasbon = processedList.filter(item => item.sisa > 0);
+        
+            activeKasbon.sort((a,b) => {
+                let res = 0;
+                if(sortKasbonCol === 'name') res = a.name.localeCompare(b.name);
+                else if(sortKasbonCol === 'tanggal') res = new Date(a.tanggal) - new Date(b.tanggal);
+                else if(sortKasbonCol === 'total') res = a.total - b.total;
+                else if(sortKasbonCol === 'sisa') res = a.sisa - b.sisa;
+                return sortKasbonOrder === 'asc' ? res : -res;
+            });
+        
+            if (activeKasbon.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data kasbon aktif</td></tr>';
+                return;
             }
+        
+            activeKasbon.forEach(item => {
+                tbody.innerHTML += '<tr><td><strong>'+item.name+'</strong></td><td>'+item.tanggal+'</td><td>'+formatRp(item.total)+'</td><td><span class="badge badge-inactive clickable-name" onclick="openKasbonDetail('+item.k.id+')">'+formatRp(item.sisa)+'</span></td><td><button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKasbon('+item.k.id+', false)" title="Hapus Kasbon"><i class="fa-solid fa-trash"></i></button></td></tr>';
+            });
         }
 
         window.openHistoryKasbon = function() {
