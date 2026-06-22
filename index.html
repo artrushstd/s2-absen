@@ -50,7 +50,7 @@
         }
 
         /* CSS UNTUK KOTAK PENCARIAN (SEARCH BAR) */
-        .search-wrapper { position: relative; display: flex; align-items: center; flex: 1; min-width: 250px; max-width: 400px; }
+        .search-wrapper { position: relative; display: flex; align-items: center; flex: 1; min-width: 250px; max-width: 400px; margin-bottom: 15px; margin-right: 10px; }
         .search-wrapper i.fa-magnifying-glass { position: absolute; left: 12px; color: var(--text-muted); pointer-events: none; }
         .search-wrapper input { width: 100%; padding-left: 36px !important; padding-right: 36px !important; }
         .search-wrapper i.fa-xmark { position: absolute; right: 12px; color: var(--text-muted); cursor: pointer; display: none; padding: 4px; border-radius: 50%; transition: 0.2s; }
@@ -636,9 +636,20 @@
         };
         
         window.toggleSortPayroll = function(col) {
-            if(payrollSortColumn === col) payrollSortOrder = payrollSortOrder === 'asc' ? 'desc' : 'asc';
-            else { payrollSortColumn = col; payrollSortOrder = 'asc'; }
+            console.log("1. Judul kolom diklik:", col);
+            
+            if(payrollSortColumn === col) {
+                payrollSortOrder = payrollSortOrder === 'asc' ? 'desc' : 'asc';
+            } else { 
+                payrollSortColumn = col; 
+                payrollSortOrder = 'asc'; 
+            }
+            
+            console.log("2. Status Sorting Sekarang -> Kolom:", payrollSortColumn, "| Urutan:", payrollSortOrder);
+            
             renderPayroll();
+            
+            console.log("3. Tabel selesai dirender ulang!");
         };
         
         window.toggleSortKasbon = function(col) {
