@@ -365,6 +365,9 @@
                             <button class="btn btn-primary" onclick="filterAbsensi()"><i class="fa-solid fa-filter"></i> Filter</button>
                             <button class="btn btn-accent" onclick="resetFilterAbsensi()" id="btn-reset-absensi" style="display:none;"><i class="fa-solid fa-rotate-left"></i> Reset Filter Nama</button>
                             <div style="margin-left: auto; display: flex; gap: 10px;">
+                                <button class="btn btn-primary" onclick="openTambahAbsensiModal()"><i class="fa-solid fa-plus"></i> Tambah Absensi Manual</button>
+                                <button class="btn btn-accent" onclick="printAbsensi()"><i class="fa-solid fa-print"></i> Print Data</button>
+                            </div>
                                 <!-- Tombol Ubah Tipe Hari Masal Dihapus dari sini -->
                                 <button class="btn btn-accent" onclick="printAbsensi()"><i class="fa-solid fa-print"></i> Print Data</button>
                             </div>
@@ -470,6 +473,74 @@
 
     <!-- ================== SEMUA MODAL POPUP ================== -->
 
+    <!-- Modal Tambah Absensi Manual -->
+    <div id="modal-tambah-absensi" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <div class="modal-header">
+                <span>Input Absensi Manual</span>
+                <i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahAbsensiModal()"></i>
+            </div>
+            <div class="form-group">
+                <label>Pilih Karyawan</label>
+                <select id="manual-abs-emp" class="input-control" style="width: 100%;"></select>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Tanggal Absensi</label>
+                    <input type="date" id="manual-abs-date" class="input-control" style="width: 100%;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Tipe Hari</label>
+                    <select id="manual-abs-tipe" class="input-control" style="width: 100%;" onchange="updatePreviewAbsensi()">
+                        <option value="Weekday">Weekday</option>
+                        <option value="Weekend">Weekend</option>
+                        <option value="Libur">Hari Libur</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Jam Masuk</label>
+                    <input type="time" id="manual-abs-in" class="input-control" style="width: 100%;" oninput="updatePreviewAbsensi()">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Jam Pulang</label>
+                    <input type="time" id="manual-abs-out" class="input-control" style="width: 100%;" oninput="updatePreviewAbsensi()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Keterangan (Opsional)</label>
+                <input type="text" id="manual-abs-ket" class="input-control" style="width: 100%;" placeholder="Misal: Lupa absen, dinas luar, dll">
+            </div>
+            
+            <!-- PREVIEW PERHITUNGAN OTOMATIS -->
+            <div style="background: var(--hover-bg); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; border-left: 3px solid var(--primary);">
+                <strong style="display: block; margin-bottom: 5px;">Preview Perhitungan Otomatis:</strong>
+                Total Poin Pokok: <span id="preview-pokok" style="color:var(--primary); font-weight:bold; font-size: 15px;">0</span> Poin <br>
+                Total Poin Ekstra (Lembur): <span id="preview-ekstra" style="color:var(--danger); font-weight:bold; font-size: 15px;">0</span> Poin <br>
+                <span style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;">*Nilai ini otomatis masuk ke Payroll.</span>
+            </div>
+    
+            <div style="display: flex; gap:10px; justify-content: flex-end;">
+                <button class="btn btn-danger" onclick="closeTambahAbsensiModal()">Batal</button>
+                <button class="btn btn-primary" onclick="confirmSaveAbsensi()"><i class="fa-solid fa-save"></i> Simpan Data</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Konfirmasi Keamanan (Security Layer) -->
+    <div id="modal-confirm-absensi" class="modal" style="z-index: 105;">
+        <div class="modal-content" style="width: 350px; text-align: center; padding: 40px 32px;">
+            <div style="font-size: 45px; color: var(--warning); margin-bottom: 15px;"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3 style="margin-bottom: 10px;">Konfirmasi Keamanan</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">Anda yakin ingin menambahkan data absensi manual ini?<br><br><b>Peringatan:</b> Tindakan ini akan langsung memengaruhi perhitungan total Gaji & Payroll karyawan.</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-outline" onclick="closeConfirmAbsensi()">Batal</button>
+                <button class="btn btn-primary" id="btn-execute-absensi" onclick="executeSaveAbsensi()">Ya, Simpan</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Modal Form Karyawan -->
     <div id="modal-karyawan" class="modal">
         <div class="modal-content" style="width: 550px;">
@@ -1359,6 +1430,133 @@
             });
             document.getElementById('abs-tot-pokok').innerText = totP.toFixed(3); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(3);
         }
+
+        // ================== FITUR ABSENSI MANUAL ==================
+        
+        // 1. Fungsi Update Preview Kalkulasi Real-time
+        window.updatePreviewAbsensi = function() {
+            let cin = document.getElementById('manual-abs-in').value;
+            let cout = document.getElementById('manual-abs-out').value;
+            let tipe = document.getElementById('manual-abs-tipe').value;
+            
+            if (cin && cout) {
+                // Menggunakan fungsi hitungPoinUtuh bawaan sistem Anda
+                let p = hitungPoinUtuh(cin, cout, tipe);
+                document.getElementById('preview-pokok').innerText = p.pokok.toFixed(3);
+                document.getElementById('preview-ekstra').innerText = p.ekstra.toFixed(3);
+            } else {
+                document.getElementById('preview-pokok').innerText = "0";
+                document.getElementById('preview-ekstra').innerText = "0";
+            }
+        };
+        
+        // 2. Membuka Form & Reset Isian
+        window.openTambahAbsensiModal = function() {
+            let sel = document.getElementById('manual-abs-emp');
+            sel.innerHTML = '<option value="">-- Pilih Karyawan --</option>';
+            
+            // Hanya tampilkan karyawan yang masih aktif bekerja
+            db_karyawan.filter(k => k.is_active).forEach(e => {
+                sel.innerHTML += '<option value="'+e.id+'">'+e.name+' (ID: '+e.id+')</option>';
+            });
+            
+            // Reset Form
+            let todayLocal = new Date().toISOString().split('T')[0];
+            document.getElementById('manual-abs-date').value = todayLocal;
+            document.getElementById('manual-abs-in').value = '';
+            document.getElementById('manual-abs-out').value = '';
+            document.getElementById('manual-abs-tipe').value = 'Weekday';
+            document.getElementById('manual-abs-ket').value = '';
+            updatePreviewAbsensi();
+            
+            document.getElementById('modal-tambah-absensi').style.display = 'flex';
+        };
+        
+        window.closeTambahAbsensiModal = function() {
+            document.getElementById('modal-tambah-absensi').style.display = 'none';
+        };
+        
+        // 3. Validasi Form & Panggil Pop-Up Konfirmasi
+        window.confirmSaveAbsensi = function() {
+            let empId = document.getElementById('manual-abs-emp').value;
+            let date = document.getElementById('manual-abs-date').value;
+            let cin = document.getElementById('manual-abs-in').value;
+            
+            if(!empId || !date || !cin) {
+                return alert("Harap isi Karyawan, Tanggal, dan Jam Masuk terlebih dahulu!");
+            }
+            
+            document.getElementById('modal-confirm-absensi').style.display = 'flex';
+        };
+        
+        window.closeConfirmAbsensi = function() {
+            document.getElementById('modal-confirm-absensi').style.display = 'none';
+        };
+        
+        // 4. Eksekusi Simpan ke Database Supabase
+        window.executeSaveAbsensi = async function() {
+            let btn = document.getElementById('btn-execute-absensi');
+            btn.disabled = true;
+            btn.innerText = 'Menyimpan...';
+        
+            let empId = parseInt(document.getElementById('manual-abs-emp').value);
+            let date = document.getElementById('manual-abs-date').value;
+            let cin = document.getElementById('manual-abs-in').value;
+            let cout = document.getElementById('manual-abs-out').value || null;
+            let tipe = document.getElementById('manual-abs-tipe').value;
+            let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
+        
+            // Buat Payload Data
+            let payload = {
+                emp_id: empId,
+                date: date,
+                clock_in: cin,
+                clock_out: cout,
+                is_weekend: is_weekend,
+                tipe_hari: tipe
+            };
+        
+            // Cek apakah di tanggal ini karyawan sudah punya data absensi
+            let existing = db_absensi.find(a => a.emp_id === empId && a.date === date);
+            let errorObj = null;
+        
+            if (existing) {
+                // UPDATE data jika sudah absen
+                const { error } = await supabaseApp.from('absensi').update(payload).eq('id', existing.id);
+                errorObj = error;
+                if (!error) {
+                    existing.clock_in = payload.clock_in;
+                    existing.clock_out = payload.clock_out;
+                    existing.is_weekend = payload.is_weekend;
+                    existing.tipe_hari = payload.tipe_hari;
+                }
+            } else {
+                // INSERT data baru jika belum absen
+                const { data, error } = await supabaseApp.from('absensi').insert([payload]).select();
+                errorObj = error;
+                if (!error && data.length > 0) {
+                    db_absensi.push(data[0]);
+                }
+            }
+        
+            if (!errorObj) {
+                // Berhasil Tersimpan, segarkan semua tabel yang berkaitan
+                renderAbsensi();
+                renderPayroll();
+                renderDashboard();
+                
+                closeConfirmAbsensi();
+                closeTambahAbsensiModal();
+                alert("Pemberitahuan: Data Absensi manual berhasil ditambahkan dan masuk ke sistem Payroll.");
+            } else {
+                alert("Gagal menyimpan absensi manual ke Server:\n" + errorObj.message);
+            }
+        
+            btn.disabled = false;
+            btn.innerText = 'Ya, Simpan';
+        };
+
+        
 
         window.filterPayroll = function() { let range = document.getElementById('date-range-payroll').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangePayroll.start = range[0]; dateRangePayroll.end = range[1] || range[0]; } renderPayroll(); };
 
