@@ -598,21 +598,80 @@
         </div>
     </div>
 
-    <!-- Modal Checklist Print Karyawan -->
+    <!-- Modal Print Karyawan - PERBAIKAN -->
     <div id="modal-print-karyawan" class="modal">
         <div class="modal-content" style="width: 400px;">
-            <div class="modal-header"><span>Pilih Kolom Cetak</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closePrintKaryawanModal()"></i></div>
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 12px;">
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-id" style="width: auto;"> ID Mesin (Default: Off)</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-id-karyawan" style="width: auto;" checked> ID Karyawan (SH2)</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-join" style="width: auto;" checked> Tanggal Join</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-name" style="width: auto;" checked disabled> Nama Karyawan (Wajib)</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-jabatan" style="width: auto;" checked> Jabatan</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-pegawai" style="width: auto;" checked> Tipe Pegawai</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-sp" style="width: auto;" checked> Status SP</label>
-                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;"><input type="checkbox" id="print-col-bpjs" style="width: auto;" checked> Status BPJS</label>
+            <div class="modal-header">
+                <span>Pilih Kolom Cetak & Status</span>
+                <i class="fa-solid fa-times" style="cursor:pointer;" onclick="closePrintKaryawanModal()"></i>
             </div>
-            <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closePrintKaryawanModal()">Batal</button><button class="btn btn-primary" onclick="printKaryawanData()"><i class="fa-solid fa-print"></i> Cetak</button></div>
+            
+            <!-- ========== SECTION: FILTER STATUS ========== -->
+            <div style="background: var(--hover-bg); padding: 12px; border-radius: 8px; margin-bottom: 16px; border-left: 3px solid var(--primary);">
+                <strong style="display: block; margin-bottom: 10px; font-size: 14px;">Filter Status Karyawan:</strong>
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; margin-bottom: 8px;">
+                    <input type="checkbox" id="print-status-aktif" style="width: auto;" checked> 
+                    Aktif Bekerja
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; margin-bottom: 8px;">
+                    <input type="checkbox" id="print-status-tidak-aktif" style="width: auto;" checked> 
+                    Tidak Aktif
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                    <input type="checkbox" id="print-status-resign" style="width: auto;" checked> 
+                    Resign/Keluar
+                </label>
+            </div>
+    
+            <!-- ========== SECTION: PILIH KOLOM ========== -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <strong style="display: block; margin-bottom: 10px; font-size: 14px;">Pilih Kolom Cetak:</strong>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-id" style="width: auto;"> 
+                        ID Mesin (Default: Off)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-id-karyawan" style="width: auto;" checked> 
+                        ID Karyawan (SH2)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-join" style="width: auto;" checked> 
+                        Tanggal Join
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-name" style="width: auto;" checked disabled> 
+                        Nama Karyawan (Wajib)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-jabatan" style="width: auto;" checked> 
+                        Jabatan
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-pegawai" style="width: auto;" checked> 
+                        Tipe Pegawai
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-sp" style="width: auto;" checked> 
+                        Status SP
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-bpjs" style="width: auto;" checked> 
+                        Status BPJS
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="print-col-status" style="width: auto;" checked> 
+                        Status Kerja
+                    </label>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;">
+                <button class="btn btn-danger" onclick="closePrintKaryawanModal()">Batal</button>
+                <button class="btn btn-primary" onclick="printKaryawanData()">
+                    <i class="fa-solid fa-print"></i> Cetak
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1255,15 +1314,110 @@
         window.openPrintKaryawanModal = function() { document.getElementById('modal-print-karyawan').style.display = 'flex'; };
         window.closePrintKaryawanModal = function() { document.getElementById('modal-print-karyawan').style.display = 'none'; };
         window.printKaryawanData = function() {
-            var showId = document.getElementById('print-col-id').checked; var showIdK = document.getElementById('print-col-id-karyawan').checked; var showJoin = document.getElementById('print-col-join').checked; var showJabatan = document.getElementById('print-col-jabatan').checked; var showPegawai = document.getElementById('print-col-pegawai').checked; var showSP = document.getElementById('print-col-sp').checked; var showBpjs = document.getElementById('print-col-bpjs').checked;
-            var activeKaryawan = db_karyawan.filter(function(k) { 
-                let st = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign'); return st === 'Aktif'; 
+            // ========== AMBIL STATUS FILTER ==========
+            var includeAktif = document.getElementById('print-status-aktif').checked;
+            var includeTidakAktif = document.getElementById('print-status-tidak-aktif').checked;
+            var includeResign = document.getElementById('print-status-resign').checked;
+            
+            // ========== AMBIL KOLOM FILTER ==========
+            var showId = document.getElementById('print-col-id').checked; 
+            var showIdK = document.getElementById('print-col-id-karyawan').checked; 
+            var showJoin = document.getElementById('print-col-join').checked; 
+            var showJabatan = document.getElementById('print-col-jabatan').checked; 
+            var showPegawai = document.getElementById('print-col-pegawai').checked; 
+            var showSP = document.getElementById('print-col-sp').checked; 
+            var showBpjs = document.getElementById('print-col-bpjs').checked;
+            var showStatus = document.getElementById('print-col-status').checked;
+            
+            // ========== FILTER BERDASARKAN CHECKBOX STATUS ==========
+            var filteredKaryawan = db_karyawan.filter(function(k) { 
+                let st = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign'); 
+                
+                if (st === 'Aktif' && includeAktif) return true;
+                if (st === 'Tidak Aktif' && includeTidakAktif) return true;
+                if (st === 'Resign' && includeResign) return true;
+                
+                return false;
             });
-            var html = '<html><head><title>Print Data Karyawan</title><style>body{font-family:"Segoe UI",Arial,sans-serif;padding:20px;color:#333;}.header{text-align:center;margin-bottom:25px;}.header h2{margin:0;color:#1f497d;font-size:22px;}.header p{margin:5px 0 0 0;font-size:14px;color:#555;}table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px;}th{background-color:#1f497d;color:white;border:1px solid #1f497d;padding:10px;font-weight:bold;text-align:left;}td{border:1px solid #ccc;padding:8px 12px;color:#333;}tr:nth-child(even){background-color:#f9fbfd;}</style></head><body onload="window.print();"><div class="header"><h2>Daftar Database Karyawan Aktif</h2><p>Suharno 2 Database System</p></div><table><thead><tr>';
-            if (showId) html += '<th>ID Mesin</th>'; if (showIdK) html += '<th>ID Karyawan</th>'; if (showJoin) html += '<th>Tanggal Join</th>'; html += '<th>Nama Karyawan</th>'; if (showJabatan) html += '<th>Jabatan</th>'; if (showPegawai) html += '<th>Tipe Pegawai</th>'; if (showSP) html += '<th>Status SP</th>'; if (showBpjs) html += '<th>Status BPJS</th>'; html += '</tr></thead><tbody>';
-            if (activeKaryawan.length === 0) { html += '<tr><td colspan="10" style="text-align:center;">Tidak ada data</td></tr>'; } 
-            else { activeKaryawan.forEach(function(emp) { html += '<tr>'; if (showId) html += '<td>' + emp.id + '</td>'; if (showIdK) html += '<td><strong>' + (emp.id_karyawan || '-') + '</strong></td>'; if (showJoin) html += '<td>' + (emp.join_date || '-') + '</td>'; html += '<td><strong>' + emp.name + '</strong></td>'; if (showJabatan) html += '<td>' + (emp.jabatan || '-') + '</td>'; if (showPegawai) html += '<td>' + (emp.status_pegawai || 'Pegawai Tetap') + '</td>'; if (showSP) html += '<td>' + getActiveSPLevel(emp) + '</td>'; if (showBpjs) html += '<td>' + emp.status_bpjs + '</td>'; html += '</tr>'; }); }
-            html += '</tbody></table></body></html>'; var win = window.open('', '_blank'); win.document.write(html); win.document.close(); closePrintKaryawanModal();
+            
+            // Jika tidak ada yang di-check, abaikan dan cetak semua
+            if (!includeAktif && !includeTidakAktif && !includeResign) {
+                filteredKaryawan = db_karyawan;
+            }
+            
+            // ========== BUAT HTML PRINT ==========
+            var html = '<html><head><title>Print Data Karyawan</title><style>' +
+                'body{font-family:"Segoe UI",Arial,sans-serif;padding:20px;color:#333;} ' +
+                '.header{text-align:center;margin-bottom:25px;} ' +
+                '.header h2{margin:0;color:#1f497d;font-size:22px;} ' +
+                '.header p{margin:5px 0 0 0;font-size:14px;color:#555;} ' +
+                'table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px;} ' +
+                'th{background-color:#1f497d;color:white;border:1px solid #1f497d;padding:10px;font-weight:bold;text-align:left;} ' +
+                'td{border:1px solid #ccc;padding:8px 12px;color:#333;} ' +
+                'tr:nth-child(even){background-color:#f9fbfd;} ' +
+                '.badge{padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600;} ' +
+                '.badge-aktif{background-color:#d1fae5;color:#065f46;} ' +
+                '.badge-tidak{background-color:#fecaca;color:#7f1d1d;} ' +
+                '.badge-resign{background-color:#fde2e4;color:#9f1239;} ' +
+                '</style></head><body onload="window.print();">';
+            
+            html += '<div class="header">' +
+                '<h2>Daftar Database Karyawan</h2>' +
+                '<p>Suharno 2 Database System</p>';
+            
+            // Tampilkan status yang di-print
+            var statusText = [];
+            if (includeAktif) statusText.push('Aktif');
+            if (includeTidakAktif) statusText.push('Tidak Aktif');
+            if (includeResign) statusText.push('Resign');
+            if (statusText.length > 0) {
+                html += '<p style="font-size:12px; color:#666;">Filter Status: <strong>' + statusText.join(' + ') + '</strong></p>';
+            }
+            
+            html += '</div>';
+            
+            // ========== HEADER TABEL ==========
+            html += '<table><thead><tr>';
+            if (showId) html += '<th>ID Mesin</th>';
+            if (showIdK) html += '<th>ID Karyawan</th>';
+            if (showJoin) html += '<th>Tanggal Join</th>';
+            html += '<th>Nama Karyawan</th>';
+            if (showJabatan) html += '<th>Jabatan</th>';
+            if (showPegawai) html += '<th>Tipe Pegawai</th>';
+            if (showSP) html += '<th>Status SP</th>';
+            if (showBpjs) html += '<th>Status BPJS</th>';
+            if (showStatus) html += '<th>Status Kerja</th>';
+            html += '</tr></thead><tbody>';
+            
+            // ========== ISI TABEL ==========
+            if (filteredKaryawan.length === 0) { 
+                html += '<tr><td colspan="10" style="text-align:center;">Tidak ada data karyawan sesuai filter</td></tr>'; 
+            } else { 
+                filteredKaryawan.forEach(function(emp) { 
+                    let status = emp.status_kerja || (emp.is_active ? 'Aktif' : 'Resign');
+                    let badgeClass = status === 'Aktif' ? 'badge-aktif' : (status === 'Tidak Aktif' ? 'badge-tidak' : 'badge-resign');
+                    
+                    html += '<tr>'; 
+                    if (showId) html += '<td>' + emp.id + '</td>'; 
+                    if (showIdK) html += '<td><strong>' + (emp.id_karyawan || '-') + '</strong></td>'; 
+                    if (showJoin) html += '<td>' + (emp.join_date || '-') + '</td>'; 
+                    html += '<td><strong>' + emp.name + '</strong></td>'; 
+                    if (showJabatan) html += '<td>' + (emp.jabatan || '-') + '</td>'; 
+                    if (showPegawai) html += '<td>' + (emp.status_pegawai || 'Pegawai Tetap') + '</td>'; 
+                    if (showSP) html += '<td>' + getActiveSPLevel(emp) + '</td>'; 
+                    if (showBpjs) html += '<td>' + emp.status_bpjs + '</td>'; 
+                    if (showStatus) html += '<td><span class="badge ' + badgeClass + '">' + status + '</span></td>';
+                    html += '</tr>'; 
+                }); 
+            }
+            html += '</tbody></table></body></html>';
+            
+            // ========== OPEN WINDOW & PRINT ==========
+            var win = window.open('', '_blank'); 
+            win.document.write(html); 
+            win.document.close(); 
+            
+            closePrintKaryawanModal();
         };
 
         // --- FUNGSI EDIT POIN ABSENSI MANUAL ---
