@@ -342,7 +342,7 @@
                                         <th onclick="toggleSortKaryawan('status_pegawai')" style="cursor: pointer;" title="Urutkan">Tipe Pegawai <i id="sort-kar-status_pegawai" class="fa-solid fa-sort"></i></th>
                                         <th>Status SP</th>
                                         <th>Status BPJS</th>
-                                        <th>Status Aktif</th>
+                                        <th onclick="toggleSortKaryawan('status_kerja')" style="cursor: pointer;" title="Urutkan">Status Karyawan <i id="sort-kar-status_kerja" class="fa-solid fa-sort"></i></th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -1048,7 +1048,7 @@
         }
 
         function renderKaryawan() {
-            let cols = ['id', 'id_karyawan', 'join_date', 'name', 'jabatan', 'status_pegawai'];
+            let cols = ['id', 'id_karyawan', 'join_date', 'name', 'jabatan', 'status_pegawai', 'status_kerja'];
             cols.forEach(c => { let icon = document.getElementById('sort-kar-' + c); if(icon) { icon.className = sortKaryawanCol === c ? (sortKaryawanOrder === 'asc' ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down") : "fa-solid fa-sort"; icon.style.color = sortKaryawanCol === c ? "var(--primary)" : "var(--text-muted)"; } });
         
             let tbody = document.querySelector('#table-karyawan tbody'); tbody.innerHTML = '';
@@ -1077,6 +1077,11 @@
                 else if(sortKaryawanCol === 'name') res = a.name.localeCompare(b.name);
                 else if(sortKaryawanCol === 'jabatan') res = (a.jabatan||'').localeCompare(b.jabatan||'');
                 else if(sortKaryawanCol === 'status_pegawai') res = (a.status_pegawai||'').localeCompare(b.status_pegawai||'');
+                else if(sortKaryawanCol === 'status_kerja') {
+                    let stA = a.status_kerja || (a.is_active ? 'Aktif' : 'Resign');
+                    let stB = b.status_kerja || (b.is_active ? 'Aktif' : 'Resign');
+                    res = stA.localeCompare(stB);
+                }
                 return sortKaryawanOrder === 'asc' ? res : -res;
             });
         
