@@ -700,7 +700,7 @@
     <div id="modal-payroll-detail" class="modal"><div class="modal-content" style="width: 700px; max-width: 95%;"><div class="modal-header"><span id="payroll-detail-title">Detail Presensi & Poin Harian</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closePayrollDetailModal()"></i></div><div style="margin-bottom: 15px;"><h4 id="payroll-detail-subtitle" style="font-size: 14px; color: var(--text-muted);">Karyawan: - | Periode: -</h4></div><div class="table-container" style="max-height: 400px; overflow-y:auto;"><table id="table-payroll-detail-daily"><thead><tr><th>Tanggal</th><th>Hari</th><th>Jam Masuk</th><th>Jam Keluar</th><th>Tipe Hari</th><th>Poin Pokok</th><th>Poin Ekstra</th><th>Lateness</th></tr></thead><tbody></tbody></table></div></div></div>
 
     <script>
-    var db_karyawan = []; var db_absensi = []; var db_bonus = {}; var db_kasbon = []; var db_angsuran = [];
+    var db_karyawan = []; var db_absensi = []; var db_bonus = {}; var db_kasbon = []; var db_angsuran = []; var db_kalender = [];
         // --- STATE VARIABEL FILTER & SORTING GLOBAL ---
         let currentAbsensiFilterName = null; 
         let currentPayrollFilterName = null;
@@ -842,7 +842,8 @@
                 }
                 let { data: bonus } = await supabaseApp.from('bonus').select('*'); if(bonus) { db_bonus = {}; bonus.forEach(function(b) { db_bonus[b.emp_id_period] = b; }); }
                 try { let { data: kasbonData } = await supabaseApp.from('kasbon').select('*'); if(kasbonData) db_kasbon = kasbonData; } catch(e) {}
-                try { let { data: angsuranData } = await supabaseApp.from('angsuran').select('*'); if(angsuranData) db_angsuran = angsuranData; } catch(e) {}
+                    try { let { data: angsuranData } = await supabaseApp.from('angsuran').select('*'); if(angsuranData) db_angsuran = angsuranData; } catch(e) {}
+                    try { let { data: kalenderData } = await supabaseApp.from('kalender_hari').select('*'); if(kalenderData) db_kalender = kalenderData; } catch(e) {}
                 
                 applyDashboardFilter(); 
                 renderKaryawan(); 
@@ -908,16 +909,13 @@
             let month = currentCalDate.getMonth();
             document.getElementById('calendar-month-year').innerText = new Date(year, month).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
             
-            // Hari pertama bulan ini (0=Minggu, 1=Senin, ..., 6=Sabtu)
             let firstDay = new Date(year, month, 1).getDay();
-            // Ubah supaya Senin jadi index 0
             let firstDayIndex = firstDay === 0 ? 6 : firstDay - 1; 
             
             let daysInMonth = new Date(year, month + 1, 0).getDate();
             let grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
             
-            // Isi hari kosong di awal bulan
             for(let i = 0; i < firstDayIndex; i++) {
                 grid.innerHTML += '<div class="calendar-day empty-day"></div>';
             }
@@ -925,25 +923,26 @@
             for(let d = 1; d <= daysInMonth; d++) {
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 let dateObj = new Date(year, month, d);
-                let dayOfWeek = dateObj.getDay(); // 0 is Sun
+                let dayOfWeek = dateObj.getDay(); 
                 
-                // Set Default: Minggu = Weekend, Senin-Sabtu = Weekday
                 let isWeekendDefault = (dayOfWeek === 0);
                 let tipeHari = isWeekendDefault ? 'Weekend' : 'Weekday';
                 
-                // Cek apakah ada override tipe hari di database absensi pada tanggal tersebut
-                let abData = db_absensi.filter(a => a.date === dateStr);
-                if(abData.length > 0) {
-                    let overriden = abData.find(a => a.tipe_hari === 'Libur');
-                    if(!overriden) overriden = abData.find(a => a.tipe_hari === 'Weekend');
-                    if(!overriden && !isWeekendDefault) overriden = abData.find(a => a.tipe_hari === 'Weekday');
-                    
-                    if(overriden && overriden.tipe_hari) {
-                        tipeHari = overriden.tipe_hari;
+                // Cek dari tabel kalender baru (Prioritas Utama)
+                let override = db_kalender.find(k => k.tanggal === dateStr);
+                if (override) {
+                    tipeHari = override.tipe_hari;
+                } else {
+                    // Fallback (Membaca histori data lama)
+                    let abData = db_absensi.filter(a => a.date === dateStr);
+                    if(abData.length > 0) {
+                        let overriden = abData.find(a => a.tipe_hari === 'Libur');
+                        if(!overriden) overriden = abData.find(a => a.tipe_hari === 'Weekend');
+                        if(!overriden && !isWeekendDefault) overriden = abData.find(a => a.tipe_hari === 'Weekday');
+                        if(overriden && overriden.tipe_hari) tipeHari = overriden.tipe_hari;
                     }
                 }
                 
-                // --- PENYESUAIAN WARNA DAN BADGE DI SINI ---
                 let boxClass = 'day-weekday';
                 let statusBadge = '<span class="badge badge-active">Weekday</span>';
                 
@@ -988,27 +987,45 @@
             const tipe = document.getElementById('modal-tipe-select').value; 
             if(!date) return; 
             
+            // Fitur Baru: Perlindungan Konfirmasi
+            let konfirmasi = confirm(`Apakah Anda yakin ingin mengubah tipe hari pada tanggal ${date} menjadi ${tipe}?\n\nPeringatan: Perubahan ini akan langsung memengaruhi perhitungan poin dan gaji (payroll) jika ada karyawan yang bekerja pada tanggal tersebut.`);
+            if (!konfirmasi) return;
+            
             const btn = document.getElementById('btn-save-tipe'); 
             btn.innerText = "Menyimpan..."; 
             btn.disabled = true; 
             
             let is_weekend = (tipe === 'Weekend' || tipe === 'Libur'); 
+            
+            // 1. Simpan (Upsert) ke Tabel Master Kalender agar permanen meskipun tidak ada absen
+            const payloadKalender = { tanggal: date, tipe_hari: tipe };
+            await supabaseApp.from('kalender_hari').upsert([payloadKalender]);
+            
+            // 2. Update massal ke tabel absensi (untuk merevisi karyawan yang terlanjur absen di tanggal tsb)
             const { error } = await supabaseApp.from('absensi').update({ is_weekend: is_weekend, tipe_hari: tipe }).eq('date', date); 
             
             if(!error) { 
+                // Update memori sistem
+                let kIndex = db_kalender.findIndex(k => k.tanggal === date);
+                if (kIndex > -1) db_kalender[kIndex] = payloadKalender;
+                else db_kalender.push(payloadKalender);
+        
                 db_absensi.forEach(function(ab) { 
                     if(ab.date === date) { 
                         ab.is_weekend = is_weekend; 
                         ab.tipe_hari = tipe; 
                     }
                 }); 
+                
+                // Render ulang tampilan visual
                 renderAbsensi(); 
                 renderPayroll(); 
-                renderCalendar(); // Render ulang kalender untuk perbarui warna
+                renderCalendar(); 
                 closeTipeHariModal(); 
             } else {
-                alert("Gagal merubah tipe hari. Pesan: " + error.message);
+                alert("Gagal merubah data absen: " + error.message);
             }
+            
             btn.innerText = "Simpan Perubahan"; 
             btn.disabled = false; 
         };
