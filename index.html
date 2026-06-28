@@ -325,7 +325,12 @@
                                 <input type="text" id="search-karyawan" class="input-control" placeholder="Cari nama, ID, jabatan..." oninput="handleSearchInput('karyawan')">
                                 <i class="fa-solid fa-xmark" id="clear-karyawan" onclick="clearSearch('karyawan')"></i>
                             </div>
-                            <div style="margin-left: auto; display: flex; gap: 10px;">
+                            <div style="display: flex; align-items: center; margin-left: 15px; margin-right: auto;">
+                                <label style="cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="show-all-emp" onchange="renderKaryawan()"> Tampilkan Non-Aktif & Resign
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
                                 <button class="btn btn-primary" onclick="openKaryawanModal()"><i class="fa-solid fa-user-plus"></i> Tambah Karyawan</button>
                                 <button class="btn btn-accent" onclick="openPrintKaryawanModal()"><i class="fa-solid fa-print"></i> Print Data Karyawan</button>
                             </div>
@@ -566,7 +571,14 @@
             </div>
             <div style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;"><label>Status BPJS</label><select id="new-emp-bpjs"><option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option></select></div>
-                <div class="form-group" style="flex: 1;"><label>Status Aktif</label><select id="new-emp-status"><option value="true">Aktif Bekerja</option><option value="false">Non-Aktif / Resign</option></select></div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Status Karyawan</label>
+                    <select id="new-emp-status">
+                        <option value="Aktif">Aktif Bekerja</option>
+                        <option value="Tidak Aktif">Tidak Aktif (Bisa Absen, Tidak Masuk Payroll)</option>
+                        <option value="Resign">Resign (Tutup Akses & Tidak Masuk Payroll)</option>
+                    </select>
+                </div>
             </div>
             <div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 10px;"><button class="btn btn-danger" onclick="closeKaryawanModal()">Batal</button><button class="btn btn-primary" onclick="saveKaryawan()" id="btn-save-karyawan">Buat Karyawan</button></div>
         </div>
@@ -1029,13 +1041,18 @@
         
             let tbody = document.querySelector('#table-karyawan tbody'); tbody.innerHTML = '';
             
-            // 1. FILTER SEARCH
+            // 1. FILTER SEARCH & STATUS
             let q = (document.getElementById('search-karyawan') ? document.getElementById('search-karyawan').value.toLowerCase() : '');
+            let showAll = document.getElementById('show-all-emp') ? document.getElementById('show-all-emp').checked : false;
+            
             let filteredDb = db_karyawan.filter(emp => {
+                let empStatus = emp.status_kerja || (emp.is_active ? 'Aktif' : 'Resign');
+                if (!showAll && empStatus !== 'Aktif') return false; // Sembunyikan Tidak Aktif & Resign secara default
+                
                 if(!q) return true;
                 let searchString = `${emp.id} ${emp.id_karyawan||''} ${emp.name} ${emp.jabatan||''} ${emp.status_pegawai||''} ${emp.status_bpjs||''}`.toLowerCase();
                 return searchString.includes(q);
-            });
+            });            
         
             if(filteredDb.length === 0) { 
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center">${q ? 'Data tidak ditemukan' : 'Data karyawan kosong'}</td></tr>`; 
@@ -1068,8 +1085,13 @@
                     '<td>'+(emp.status_pegawai || 'Pegawai Tetap')+'</td>' +
                     '<td>'+spBadge+'</td>' +
                     '<td><span class="badge '+(emp.status_bpjs === 'Aktif' ? 'badge-active' : 'badge-inactive')+'">'+emp.status_bpjs+'</span></td>' +
-                    '<td><span class="badge '+(emp.is_active ? 'badge-active' : 'badge-inactive')+'">'+(emp.is_active ? 'Aktif' : 'Non-Aktif')+'</span></td>' +
-                    '<td>' +
+                    (function(){
+                        let st = emp.status_kerja || (emp.is_active ? 'Aktif' : 'Resign');
+                        if(st === 'Aktif') return '<td><span class="badge badge-active">Aktif</span></td>';
+                        if(st === 'Tidak Aktif') return '<td><span class="badge badge-warning">Tidak Aktif</span></td>';
+                        return '<td><span class="badge badge-inactive">Resign</span></td>';
+                    })() +
+                    '<td>' + 
                         '<div style="display: flex; gap: 4px; flex-wrap: wrap;">' +
                             '<button class="btn btn-accent" style="padding:6px 10px;" onclick="openKaryawanModal('+emp.id+')" title="Edit"><i class="fa-solid fa-pen"></i></button>' +
                             '<button class="btn btn-danger" style="padding:6px 10px;" onclick="deleteKaryawan('+emp.id+', \''+emp.name+'\')" title="Hapus"><i class="fa-solid fa-trash"></i></button>' +
@@ -1096,14 +1118,14 @@
                 document.getElementById('new-emp-tgl-lahir').value = emp.tanggal_lahir || ''; 
                 document.getElementById('new-emp-bpjs').value = emp.status_bpjs; 
                 document.getElementById('new-emp-gaji-pokok').value = emp.gaji_per_poin_pokok; 
-                document.getElementById('new-emp-status').value = emp.is_active ? 'true' : 'false';
+                document.getElementById('new-emp-status').value = emp.status_kerja || (emp.is_active ? 'Aktif' : 'Resign');
                 btnSave.innerText = "Simpan Perubahan";
             } else {
                 document.getElementById('edit-emp-id').value = ''; document.getElementById('new-emp-id').value = ''; document.getElementById('new-emp-id-karyawan').value = '';
                 document.getElementById('new-emp-name').value = ''; document.getElementById('new-emp-jabatan').value = ''; document.getElementById('new-emp-status-pegawai').value = 'Pegawai Tetap';
                 document.getElementById('new-emp-tgl-join').value = ''; document.getElementById('new-emp-tgl-lahir').value = ''; document.getElementById('new-emp-bpjs').value = 'Aktif'; 
-                document.getElementById('new-emp-gaji-pokok').value = ''; document.getElementById('new-emp-status').value = 'true';
-                btnSave.innerText = "Buat Karyawan";
+                document.getElementById('new-emp-gaji-pokok').value = ''; document.getElementById('new-emp-status').value = 'Aktif';
+                btnSave.innerText = "Buat Karyawan";   
             }
             document.getElementById('modal-karyawan').style.display = 'flex'; 
         };
@@ -1125,8 +1147,9 @@
                 tanggal_lahir: document.getElementById('new-emp-tgl-lahir').value, 
                 status_bpjs: document.getElementById('new-emp-bpjs').value, 
                 gaji_per_poin_pokok: parseInt(document.getElementById('new-emp-gaji-pokok').value) || 0, 
-                gaji_per_poin_ekstra: 0,  // <--- INI TAMBAHANNYA
-                is_active: document.getElementById('new-emp-status').value === 'true' 
+                gaji_per_poin_ekstra: 0,
+                is_active: document.getElementById('new-emp-status').value !== 'Resign', // Resign = false (Gembok). Tidak aktif tetap true agar bisa absen
+                status_kerja: document.getElementById('new-emp-status').value
             };
             
             if(!newEmp.id || !newEmp.name || !newEmp.join_date || !newEmp.tanggal_lahir || newEmp.gaji_per_poin_pokok <= 0) {
@@ -1220,7 +1243,9 @@
         window.closePrintKaryawanModal = function() { document.getElementById('modal-print-karyawan').style.display = 'none'; };
         window.printKaryawanData = function() {
             var showId = document.getElementById('print-col-id').checked; var showIdK = document.getElementById('print-col-id-karyawan').checked; var showJoin = document.getElementById('print-col-join').checked; var showJabatan = document.getElementById('print-col-jabatan').checked; var showPegawai = document.getElementById('print-col-pegawai').checked; var showSP = document.getElementById('print-col-sp').checked; var showBpjs = document.getElementById('print-col-bpjs').checked;
-            var activeKaryawan = db_karyawan.filter(function(k) { return k.is_active === true; });
+            var activeKaryawan = db_karyawan.filter(function(k) { 
+                let st = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign'); return st === 'Aktif'; 
+            });
             var html = '<html><head><title>Print Data Karyawan</title><style>body{font-family:"Segoe UI",Arial,sans-serif;padding:20px;color:#333;}.header{text-align:center;margin-bottom:25px;}.header h2{margin:0;color:#1f497d;font-size:22px;}.header p{margin:5px 0 0 0;font-size:14px;color:#555;}table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px;}th{background-color:#1f497d;color:white;border:1px solid #1f497d;padding:10px;font-weight:bold;text-align:left;}td{border:1px solid #ccc;padding:8px 12px;color:#333;}tr:nth-child(even){background-color:#f9fbfd;}</style></head><body onload="window.print();"><div class="header"><h2>Daftar Database Karyawan Aktif</h2><p>Suharno 2 Database System</p></div><table><thead><tr>';
             if (showId) html += '<th>ID Mesin</th>'; if (showIdK) html += '<th>ID Karyawan</th>'; if (showJoin) html += '<th>Tanggal Join</th>'; html += '<th>Nama Karyawan</th>'; if (showJabatan) html += '<th>Jabatan</th>'; if (showPegawai) html += '<th>Tipe Pegawai</th>'; if (showSP) html += '<th>Status SP</th>'; if (showBpjs) html += '<th>Status BPJS</th>'; html += '</tr></thead><tbody>';
             if (activeKaryawan.length === 0) { html += '<tr><td colspan="10" style="text-align:center;">Tidak ada data</td></tr>'; } 
@@ -1254,7 +1279,10 @@
         window.exportDashboardCSV = function() { let csv = "Nama,Shift,Check-In,Check-Out,Status,Jam Lembur\n"; let trs = document.querySelectorAll('#dash-table-today tbody tr'); if(trs.length === 1 && trs[0].innerText.includes('Memuat')) return; trs.forEach(function(tr) { let tds = tr.querySelectorAll('td'); if(tds.length < 6) return; csv += '"' + tds[0].innerText + '","' + tds[1].innerText + '","' + tds[2].innerText + '","' + tds[3].innerText + '","' + tds[4].innerText.trim() + '","' + tds[5].innerText + '"\n'; }); let blob = new Blob([csv], { type: 'text/csv' }); let url = window.URL.createObjectURL(blob); let a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'Laporan_' + filterDashboard.date + '.csv'); a.click(); };
         
         function renderDashboard() {
-            let activeEmps = db_karyawan.filter(function(k) { return k.is_active; }); document.getElementById('dash-total-emp').innerText = activeEmps.length;
+            let activeEmps = db_karyawan.filter(function(k) { 
+                let st = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign'); return st === 'Aktif'; 
+            }); 
+            document.getElementById('dash-total-emp').innerText = activeEmps.length;
             let absensiFiltered = db_absensi.filter(function(a) { return a.date === filterDashboard.date; });
             let hadirList = []; let lateList = []; let overtimeList = []; let dashLembur = 0;
             absensiFiltered.forEach(function(ab) {
@@ -1459,8 +1487,11 @@
             let sel = document.getElementById('manual-abs-emp');
             sel.innerHTML = '<option value="">-- Pilih Karyawan --</option>';
             
-            // Hanya tampilkan karyawan yang masih aktif bekerja
-            db_karyawan.filter(k => k.is_active).forEach(e => {
+            // Hanya tampilkan karyawan Aktif dan Tidak Aktif (Karyawan Resign diblokir dari sistem absen)
+            db_karyawan.filter(k => {
+                let st = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign');
+                return st !== 'Resign';
+            }).forEach(e => {
                 sel.innerHTML += '<option value="'+e.id+'">'+e.name+' (ID: '+e.id+')</option>';
             });
             
@@ -1632,9 +1663,15 @@
                 return { e, data, pPokok, pEkstra, pBonus, gPokok, gLembur, gBonus, potBpjs, totGaji };
             });
         
+            // Filter Karyawan Non-Aktif & Resign dari sistem Payroll
+            processedList = processedList.filter(item => {
+                let st = item.e.status_kerja || (item.e.is_active ? 'Aktif' : 'Resign');
+                return st === 'Aktif';
+            });
+            
             // 5. Fitur Pencarian (Search)
             let q = document.getElementById('search-payroll') ? document.getElementById('search-payroll').value.toLowerCase() : '';
-            if (q) {
+            if (q) {   
                 processedList = processedList.filter(item => {
                     let searchString = `${item.e.name} ${item.gPokok} ${item.gLembur} ${item.totGaji}`.toLowerCase();
                     return searchString.includes(q);
@@ -1975,6 +2012,10 @@
                 }); 
                 
                 let empList = Object.keys(payrollData).map(function(k){ return payrollData[k]; }); 
+                empList = empList.filter(function(d) {
+                    let st = d.emp.status_kerja || (d.emp.is_active ? 'Aktif' : 'Resign');
+                    return st === 'Aktif';
+                });
                 if(currentPayrollFilterName) {
                     empList = empList.filter(function(d) { return d.emp.name === currentPayrollFilterName; }); 
                 }
