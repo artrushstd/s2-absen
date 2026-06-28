@@ -771,7 +771,7 @@
         let today = new Date(); let todayStr = today.toISOString().split('T')[0];
         let firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
         
-        let dateRangeAbsensi = { start: firstDay, end: todayStr }; let dateRangePayroll = { start: firstDay, end: todayStr };
+        let dateRangeAbsensi = { start: todayStr, end: todayStr }; let dateRangePayroll = { start: firstDay, end: todayStr };
         let filterDashboard = { date: todayStr, shift: '' };
 
         function toggleTheme() {
@@ -790,7 +790,7 @@
                 const fpConfig = { mode: "range", dateFormat: "Y-m-d", onOpen: function(selectedDates, dateStr, instance) { instance.clear(); let d = new Date(); instance.setDate([new Date(d.getFullYear(), d.getMonth(), 1), new Date(d.getFullYear(), d.getMonth() + 1, 0)], false); } };
                 flatpickr("#date-range-absensi", fpConfig); flatpickr("#date-range-payroll", fpConfig);
                 flatpickr("#dash-filter-date", { dateFormat: "Y-m-d", defaultDate: todayStr });
-                document.getElementById('date-range-absensi').value = firstDay + " to " + todayStr;
+                document.getElementById('date-range-absensi').value = todayStr + " to " + todayStr;
                 document.getElementById('date-range-payroll').value = firstDay + " to " + todayStr;
             }
             let savedUser = null; try { savedUser = sessionStorage.getItem('auth_user'); } catch(e) {}
@@ -1837,7 +1837,7 @@
                 '.text-center { text-align: center; } ' +
                 '.text-right { text-align: right; } ' +
                 /* CSS UNTUK BARIS TOTAL PER KARYAWAN (BORDER TEBAL) */
-                '.subtotal-row td { background-color: #e8eaed; font-weight: bold; border-bottom: 2.5px solid #000; padding-top: 6px; padding-bottom: 6px; font-size: 11px; } ' +
+                '.subtotal-row td { background-color: #dc2626 !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; border-bottom: 2.5px solid #000; padding-top: 6px; padding-bottom: 6px; font-size: 11px; } ' +
                 '</style></head><body onload="window.print();">';
                 
             // 2. HEADER SURAT CETAK
