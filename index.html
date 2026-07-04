@@ -1638,30 +1638,6 @@
             });
             document.getElementById('abs-tot-pokok').innerText = totP.toFixed(2); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(2);
         }
-        
-            // 2. SORTING
-            processedList.sort((a,b) => { 
-                let res = 0; 
-                if(absensiSortColumn === 'date') res = new Date(a.ab.date) - new Date(b.ab.date); 
-                else if(absensiSortColumn === 'name') res = a.name.localeCompare(b.name); 
-                else if(absensiSortColumn === 'in') res = a.cin.localeCompare(b.cin); 
-                else if(absensiSortColumn === 'out') res = a.cout.localeCompare(b.cout); 
-                else if(absensiSortColumn === 'pokok') res = a.pokok - b.pokok; 
-                else if(absensiSortColumn === 'ekstra') res = a.ekstra - b.ekstra; 
-                return absensiSortOrder === 'asc' ? res : -res; 
-            });
-        
-            // 3. RENDER TABEL
-            processedList.forEach(item => { 
-                totP += item.pokok; totE += item.ekstra; 
-                let tHariBadge = item.tHari === 'Libur' ? '<span class="badge badge-warning">Libur</span>' : (item.tHari === 'Weekend' ? '<span class="badge badge-inactive">Weekend</span>' : '<span class="badge badge-active">Weekday</span>');
-                let tdPokok = (item.ab.poin_pokok_override !== null && item.ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+item.pokok+'</strong>' : item.pokok;
-                let tdEkstra = (item.ab.poin_ekstra_override !== null && item.ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+item.ekstra+'</strong>' : item.ekstra;
-                
-                tbody.innerHTML += '<tr><td>'+item.ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+item.name+'\')">'+item.name+'</td><td>'+(item.cin||'-')+'</td><td>'+(item.cout||'-')+'</td><td>'+tHariBadge+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+item.ab.emp_id+', \''+item.ab.date+'\', \''+item.name+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
-            });
-            document.getElementById('abs-tot-pokok').innerText = totP.toFixed(2); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(2);
-        }
 
         // ================== FITUR ABSENSI MANUAL ==================
         
