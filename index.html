@@ -834,8 +834,14 @@
         let payrollSortColumn = 'name'; let payrollSortOrder = 'asc'; 
         let chartAttInstance = null;
 
-        let today = new Date(); let todayStr = today.toISOString().split('T')[0];
-        let firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        // Mengambil tanggal lokal sesuai zona waktu perangkat pengakses (WIB/WITA/WIT)
+        let today = new Date(); 
+        let yyyy = today.getFullYear();
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let dd = String(today.getDate()).padStart(2, '0');
+        let todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        let firstDay = `${yyyy}-${mm}-01`;
         
         let dateRangeAbsensi = { start: todayStr, end: todayStr }; let dateRangePayroll = { start: firstDay, end: todayStr };
         let filterDashboard = { date: todayStr, shift: '' };
@@ -1584,11 +1590,15 @@
             let tbody = document.querySelector('#table-absensi tbody'); tbody.innerHTML = ''; let totP = 0; let totE = 0;
             
             // Filter by Date & Name Filter
-            let filtered = db_absensi.filter(ab => { let emp = db_karyawan.find(k => k.id == ab.emp_id); let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; return passName && ab.date >= dateRangeAbsensi.start && ab.date <= dateRangeAbsensi.end; });
-            
-            let processedList = filtered.map(ab => {
-                let emp = db_karyawan.find(k=>k.id==ab.emp_id); let tHari = ab.tipe_hari || (ab.is_weekend?'Weekend':'Weekday'); let p = hitungPoinAkhir(ab);
-                return { ab, name: emp?emp.name:ab.emp_id.toString(), tHari, pokok: p.pokok, ekstra: p.ekstra, cin: ab.clock_in||'', cout: ab.clock_out||'' };
+            let filtered = db_absensi.filter(ab => { 
+                let emp = db_karyawan.find(k => k.id == ab.emp_id); 
+                let passName = currentAbsensiFilterName && emp ? emp.name === currentAbsensiFilterName : true; 
+                
+                // PERBAIKAN: Potong string dari database untuk hanya mengambil 10 karakter pertama (YYYY-MM-DD)
+                // Ini mengabaikan jam/waktu yang mungkin tersimpan dari Supabase
+                let dbDate = ab.date ? ab.date.substring(0, 10) : ""; 
+                
+                return passName && dbDate >= dateRangeAbsensi.start && dbDate <= dateRangeAbsensi.end; 
             });
         
             // 1. FILTER SEARCH
@@ -1799,13 +1809,10 @@
             let payrollData = {};
             db_karyawan.forEach(emp => payrollData[emp.id] = { emp: emp, totPokok: 0, totEkstra: 0 });
             
-            db_absensi.filter(ab => ab.date >= dateRangePayroll.start && ab.date <= dateRangePayroll.end).forEach(ab => {
-                if (payrollData[ab.emp_id]) {
-                    let p = hitungPoinAkhir(ab);
-                    payrollData[ab.emp_id].totPokok += p.pokok;
-                    payrollData[ab.emp_id].totEkstra += p.ekstra;
-                }
-            });
+            db_absensi.filter(ab => {
+                let dbDate = ab.date ? ab.date.substring(0, 10) : "";
+                return dbDate >= dateRangePayroll.start && dbDate <= dateRangePayroll.end;
+            }).forEach(ab => {
         
             let isBpjsMonth = false;
             let tempD = new Date(dateRangePayroll.start);
