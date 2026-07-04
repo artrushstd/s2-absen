@@ -892,26 +892,30 @@
             try {
                 let { data: karyawan } = await supabaseApp.from('karyawan').select('*').order('id', { ascending: true });
                 if(karyawan) db_karyawan = karyawan;
-                let { data: absensi } = await supabaseApp.from('absensi').select('*');
+                
+                // PERBAIKAN: Tambahkan limit(3000) dan order descending agar data TERBARU tidak tertinggal!
+                let { data: absensi } = await supabaseApp.from('absensi').select('*').order('date', { ascending: false }).limit(3000);
+                
                 if(absensi) {
                     absensi.forEach(function(ab) {
                         if (ab.date) {
                             var d = new Date(ab.date + "T00:00:00");
-                            if (d.getDay() === 0 && !ab.tipe_hari) { ab.is_weekend = true; ab.tipe_hari = 'Weekend'; } // 0 is Sunday
+                            if (d.getDay() === 0 && !ab.tipe_hari) { ab.is_weekend = true; ab.tipe_hari = 'Weekend'; }
                         }
                     }); db_absensi = absensi;
                 }
+                
                 let { data: bonus } = await supabaseApp.from('bonus').select('*'); if(bonus) { db_bonus = {}; bonus.forEach(function(b) { db_bonus[b.emp_id_period] = b; }); }
                 try { let { data: kasbonData } = await supabaseApp.from('kasbon').select('*'); if(kasbonData) db_kasbon = kasbonData; } catch(e) {}
-                    try { let { data: angsuranData } = await supabaseApp.from('angsuran').select('*'); if(angsuranData) db_angsuran = angsuranData; } catch(e) {}
-                    try { let { data: kalenderData } = await supabaseApp.from('kalender_hari').select('*'); if(kalenderData) db_kalender = kalenderData; } catch(e) {}
+                try { let { data: angsuranData } = await supabaseApp.from('angsuran').select('*'); if(angsuranData) db_angsuran = angsuranData; } catch(e) {}
+                try { let { data: kalenderData } = await supabaseApp.from('kalender_hari').select('*'); if(kalenderData) db_kalender = kalenderData; } catch(e) {}
                 
                 applyDashboardFilter(); 
                 renderKaryawan(); 
                 renderAbsensi(); 
                 renderPayroll(); 
                 renderKasbon();
-                renderCalendar(); // Render Kalender Baru
+                renderCalendar(); 
             } catch(error) { alert("Gagal menarik data dari server."); } finally { document.getElementById('loading-indicator').style.display = 'none'; }
         }
 
@@ -1579,7 +1583,17 @@
             if(pageId === 'kalender') renderCalendar();
         };
 
-        window.filterAbsensi = function() { let range = document.getElementById('date-range-absensi').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangeAbsensi.start = range[0]; dateRangeAbsensi.end = range[1] || range[0]; } renderAbsensi(); };
+        window.filterAbsensi = function() { 
+            let val = document.getElementById('date-range-absensi').value;
+            // Pecah berdasarkan kata "to" dan buang semua spasi tersembunyi menggunakan trim()
+            let range = val.split("to").map(s => s.trim()); 
+            if (range.length > 0 && range[0] !== "") { 
+                dateRangeAbsensi.start = range[0]; 
+                dateRangeAbsensi.end = range[1] || range[0]; 
+            } 
+            renderAbsensi(); 
+        };
+        
         window.clickNameAbsensi = function(name) { currentAbsensiFilterName = name; document.getElementById('btn-reset-absensi').style.display = 'inline-flex'; renderAbsensi(); };
         window.resetFilterAbsensi = function() { currentAbsensiFilterName = null; document.getElementById('btn-reset-absensi').style.display = 'none'; renderAbsensi(); };
         window.toggleSortAbsensi = function(col) { if(absensiSortColumn === col) absensiSortOrder = absensiSortOrder === 'asc' ? 'desc' : 'asc'; else { absensiSortColumn = col; absensiSortOrder = 'asc'; } renderAbsensi(); };
@@ -1767,9 +1781,15 @@
             btn.innerText = 'Ya, Simpan';
         };
 
-        
-
-        window.filterPayroll = function() { let range = document.getElementById('date-range-payroll').value.split(" to "); if (range.length > 0 && range[0] !== "") { dateRangePayroll.start = range[0]; dateRangePayroll.end = range[1] || range[0]; } renderPayroll(); };
+        window.filterPayroll = function() { 
+            let val = document.getElementById('date-range-payroll').value;
+            let range = val.split("to").map(s => s.trim()); 
+            if (range.length > 0 && range[0] !== "") { 
+                dateRangePayroll.start = range[0]; 
+                dateRangePayroll.end = range[1] || range[0]; 
+            } 
+            renderPayroll(); 
+        };
 
         // --- KODE SORTING PAYROLL (VERSI TERBARU ANTI-GAGAL) ---
         window.PAYROLL_STATE = { col: 'name', order: 'asc' };
