@@ -1648,10 +1648,59 @@
                 let tdPokok = (item.ab.poin_pokok_override !== null && item.ab.poin_pokok_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+item.pokok+'</strong>' : item.pokok;
                 let tdEkstra = (item.ab.poin_ekstra_override !== null && item.ab.poin_ekstra_override !== undefined) ? '<strong style="color:var(--danger);" title="Diedit Manual">'+item.ekstra+'</strong>' : item.ekstra;
                 
-                tbody.innerHTML += '<tr><td>'+item.ab.date+'</td><td class="clickable-name" onclick="clickNameAbsensi(\''+item.name+'\')">'+item.name+'</td><td>'+(item.cin||'-')+'</td><td>'+(item.cout||'-')+'</td><td>'+tHariBadge+'</td><td>'+tdPokok+'</td><td>'+tdEkstra+'</td><td><button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+item.ab.emp_id+', \''+item.ab.date+'\', \''+item.name+'\')"><i class="fa-solid fa-pen"></i> Edit</button></td></tr>'; 
+                tbody.innerHTML += '<tr>' +
+                    '<td>'+item.ab.date+'</td>' +
+                    '<td class="clickable-name" onclick="clickNameAbsensi(\''+item.name+'\')">'+item.name+'</td>' +
+                    '<td>'+(item.cin||'-')+'</td>' +
+                    '<td>'+(item.cout||'-')+'</td>' +
+                    '<td>'+tHariBadge+'</td>' +
+                    '<td>'+tdPokok+'</td>' +
+                    '<td>'+tdEkstra+'</td>' +
+                    '<td>' +
+                        '<div style="display: flex; gap: 4px;">' +
+                            '<button class="btn btn-accent" style="padding:4px 8px; font-size:12px;" onclick="openEditAbsensiModal('+item.ab.emp_id+', \''+item.ab.date+'\', \''+item.name+'\')"><i class="fa-solid fa-pen"></i> Edit</button>' +
+                            '<button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteAbsensi('+item.ab.emp_id+', \''+item.ab.date+'\', \''+item.name+'\')" title="Hapus Absensi"><i class="fa-solid fa-trash"></i> Hapus</button>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'; 
             });
             document.getElementById('abs-tot-pokok').innerText = totP.toFixed(2); document.getElementById('abs-tot-ekstra').innerText = totE.toFixed(2);
         }
+
+        // --- FUNGSI HAPUS ABSENSI ---
+        window.deleteAbsensi = async function(empId, date, empName) {
+            let konfirmasi = confirm(`Apakah Anda yakin ingin menghapus data absensi:\n\nNama: ${empName}\nTanggal: ${date}\n\nPeringatan: Data yang dihapus akan hilang selamanya dan memotong total gaji di Payroll.`);
+            if (!konfirmasi) return;
+            
+            document.getElementById('loading-indicator').style.display = 'inline-block';
+            
+            try {
+                // 1. Eksekusi hapus di database Supabase
+                const { error } = await supabaseApp
+                    .from('absensi')
+                    .delete()
+                    .eq('emp_id', empId)
+                    .eq('date', date);
+                    
+                if (error) {
+                    alert("Gagal menghapus data absensi dari server:\n" + error.message);
+                } else {
+                    // 2. Hapus data dari memori browser
+                    db_absensi = db_absensi.filter(a => !(a.emp_id == empId && a.date === date));
+                    
+                    // 3. Render / refresh ulang semua tabel yang terpengaruh
+                    renderAbsensi();
+                    renderPayroll();
+                    renderDashboard();
+                    
+                    alert("Data absensi berhasil dihapus!");
+                }
+            } catch (err) {
+                alert("Terjadi kesalahan sistem: " + err.message);
+            } finally {
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        };
 
         // ================== FITUR ABSENSI MANUAL ==================
         
