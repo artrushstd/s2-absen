@@ -1488,7 +1488,7 @@
                 let pEkstra = b.poin_ekstra_override !== null && b.poin_ekstra_override !== undefined ? b.poin_ekstra_override : data.ekstra;
                 let gPokok = b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined ? b.gaji_pokok_override : (pPokok * emp.gaji_per_poin_pokok);
                 let gEkstra = (emp.gaji_per_poin_pokok||0) * ((pEkstra / 8) * 2); let gBonus = b.nominal || ((b.poin || 0) * (emp.gaji_per_poin_pokok||0));
-                mPayPokok += gPokok; mPayLembur += gEkstra; mPayBonus += gBonus; if(emp.status_bpjs === 'Aktif' && isBpjsDeductible) potBpjsTot += 50000;
+                mPayPokok += gPokok; mPayLembur += gEkstra; mPayBonus += gBonus; if(emp.status_bpjs === 'Aktif' && isBpjsDeductible) potBpjsTot += 55000;
             });
             let mNetPay = mPayPokok + mPayLembur + mPayBonus - potBpjsTot;
             document.getElementById('dash-est-payroll').innerText = formatRp(mNetPay);
@@ -1903,7 +1903,7 @@
                 let gPokok = b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok);
                 let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2);
                 let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok);
-                let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0;
+                let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 55000 : 0;
                 let totGaji = gPokok + gLembur + gBonus - potBpjs;
                 return { e, data, pPokok, pEkstra, pBonus, gPokok, gLembur, gBonus, potBpjs, totGaji };
             });
@@ -2301,7 +2301,7 @@
                     let gPokok = (b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined) ? b.gaji_pokok_override : (pPokok * e.gaji_per_poin_pokok); 
                     let gLembur = e.gaji_per_poin_pokok * ((pEkstra / 8) * 2); 
                     let gBonus = b.nominal || (pBonus * e.gaji_per_poin_pokok); 
-                    let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 50000 : 0; 
+                    let potBpjs = (e.status_bpjs === 'Aktif' && isBpjsMonth) ? 55000 : 0; 
                     
                     // Perhitungan di level Slip Karyawan (Take Home Pay = Gross - BPJS)
                     let totGajiSlip = gPokok + gLembur + gBonus - potBpjs; 
