@@ -921,8 +921,11 @@
 
         // --- SISTEM PERHITUNGAN SHIFT & POIN ---
         function getShiftDetails(jamMasuk, tipeHari) {
+            // "Full Shift" HANYA berlaku untuk hari Minggu (Weekend) dan Hari Libur
             let isWknd = (tipeHari === 'Weekend' || tipeHari === 'Libur' || tipeHari === true);
-            if(isWknd) return { name: 'Full Shift', start: 7.0, end: 19.5 };
+            if (isWknd) return { name: 'Full Shift', start: 7.0, end: 19.5 };
+
+            // Selain itu (Senin - Sabtu) menggunakan Shift Normal (Pagi/Middle/Siang)
             let h = parseInt(jamMasuk.split(':')[0]) + parseInt(jamMasuk.split(':')[1])/60;
             if (h <= 8.5) return { name: 'Pagi', start: 7.0, end: 16.0 };
             if (h <= 11.5) return { name: 'Middle', start: 10.0, end: 19.0 };
@@ -952,10 +955,31 @@
             if (totalLembur < 1.0) totalLembur = 0;
 
             let isWknd = (tipeHari === 'Weekend' || tipeHari === 'Libur' || tipeHari === true);
+            
+            // KEMBALIKAN PEMBAGI 12.5 UNTUK FULL SHIFT AGAR PAS DAPAT 2 POIN
             let poinPokok = isWknd ? (jamNormal / 12.5) * 2 : (jamNormal / 9.0);
             let poinEkstra = totalLembur; 
 
-            return { pokok: Number(poinPokok.toFixed(2)), ekstra: Number(poinEkstra.toFixed(2)), lateness: lateness, lemburBefore: lemburBefore, lemburAfter: lemburAfter, lemburTotal: totalLembur, shiftName: shift.name };
+            // ATURAN LEMBUR KHUSUS WEEKDAY (SENIN - SABTU)
+            if (!isWknd) {
+                if (totalLembur > 4.0) {
+                    poinPokok += 1.0;   
+                    poinEkstra = 0.0;   
+                    totalLembur = 4.0;  
+                } else {
+                    poinEkstra = totalLembur; 
+                }
+            }
+
+            return { 
+                pokok: Number(poinPokok.toFixed(2)), 
+                ekstra: Number(poinEkstra.toFixed(2)), 
+                lateness: lateness, 
+                lemburBefore: lemburBefore, 
+                lemburAfter: lemburAfter, 
+                lemburTotal: totalLembur, 
+                shiftName: shift.name 
+            };
         }
 
         function hitungPoinAkhir(ab) {
