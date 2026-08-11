@@ -808,7 +808,7 @@
     </div>
     
     <!-- Modal Konfirmasi Keamanan (Security Layer) -->
-    <div id="modal-confirm-absensi" class="modal" style="z-index: 105;">
+    <div id="modal-confirm-absensi" class="modal" style="z-index: 1050;">
         <div class="modal-content" style="width: 350px; text-align: center; padding: 40px 32px;">
             <div style="font-size: 45px; color: var(--warning); margin-bottom: 15px;"><i class="fa-solid fa-shield-halved"></i></div>
             <h3 style="margin-bottom: 10px;">Konfirmasi Keamanan</h3>
@@ -1014,7 +1014,7 @@
 
     <!-- Modal Kasbon Detail & Tambah Kasbon/Angsuran -->
     <div id="modal-kasbon-detail" class="modal"><div class="modal-content" style="width: 600px;"><div class="modal-header"><span id="kasbon-detail-title">Detail Kasbon</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeKasbonDetail()"></i></div><div style="margin-bottom: 16px; display:flex; justify-content: space-between; align-items:center;"><h4 style="margin: 0; font-size:15px;" id="kasbon-detail-sisa">Sisa: Rp 0</h4><button class="btn btn-primary" id="btn-tambah-angsuran" onclick="openTambahAngsuran()"><i class="fa-solid fa-plus"></i> Tambah Angsuran</button></div><div class="table-container" style="max-height: 400px; overflow-y:auto;"><table id="table-angsuran"><thead><tr><th>Tanggal Angsuran</th><th>Angsuran Ke</th><th>Nominal</th><th>Sisa Pinjaman</th></tr></thead><tbody></tbody></table></div></div></div>
-    <div id="modal-tambah-angsuran" class="modal" style="z-index: 101;"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Tambah Angsuran Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahAngsuran()"></i></div><div class="form-group"><label>Jumlah Angsuran (Rp)</label><input type="number" id="input-nominal-angsuran" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahAngsuran()">Batal</button><button class="btn btn-primary" onclick="saveAngsuran()">Simpan Angsuran</button></div></div></div>
+    <div id="modal-tambah-angsuran" class="modal" style="z-index: 1050;"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Tambah Angsuran Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahAngsuran()"></i></div><div class="form-group"><label>Jumlah Angsuran (Rp)</label><input type="number" id="input-nominal-angsuran" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahAngsuran()">Batal</button><button class="btn btn-primary" id="btn-save-angsuran" onclick="saveAngsuran()">Simpan Angsuran</button></div></div></div>
     <div id="modal-tambah-kasbon" class="modal"><div class="modal-content" style="width: 400px;"><div class="modal-header"><span>Buat Kasbon Baru</span><i class="fa-solid fa-times" style="cursor:pointer;" onclick="closeTambahKasbon()"></i></div><div class="form-group"><label>Pilih Karyawan</label><select id="kasbon-emp-id"></select></div><div class="form-group"><label>Tanggal Pinjaman Masuk</label><input type="date" id="kasbon-tanggal"></div><div class="form-group"><label>Total Pinjaman (Rp)</label><input type="number" id="kasbon-total" min="0"></div><div style="display: flex; gap:10px; justify-content: flex-end; margin-top: 24px;"><button class="btn btn-danger" onclick="closeTambahKasbon()">Batal</button><button class="btn btn-primary" onclick="saveKasbon()">Buat Pinjaman</button></div></div></div>
     <!-- Modal History Kasbon (Lunas) -->
     <div id="modal-history-kasbon" class="modal">
@@ -2574,7 +2574,33 @@
             btn.disabled = false; 
         };
 
-        let currentKasbonId = null; window.openTambahKasbon = function() { let sel = document.getElementById('kasbon-emp-id'); sel.innerHTML = ''; db_karyawan.forEach(function(e) { sel.innerHTML += '<option value="'+e.id+'">'+e.name+'</option>'; }); document.getElementById('kasbon-tanggal').value = todayStr; document.getElementById('kasbon-total').value = ''; document.getElementById('modal-tambah-kasbon').style.display = 'flex'; }; window.closeTambahKasbon = function() { document.getElementById('modal-tambah-kasbon').style.display = 'none'; }; window.saveKasbon = async function() { let emp_id = parseInt(document.getElementById('kasbon-emp-id').value); let tanggal = document.getElementById('kasbon-tanggal').value; let total = parseFloat(document.getElementById('kasbon-total').value); if(!tanggal || !total || total <= 0) return; const payload = { emp_id: emp_id, tanggal_pinjaman: tanggal, total_pinjaman: total }; const { data, error } = await supabaseApp.from('kasbon').insert([payload]).select(); if(!error) { let newObj = data ? data[0] : payload; newObj.id = newObj.id || Date.now(); db_kasbon.push(newObj); closeTambahKasbon(); renderKasbon(); renderDashboard(); } }; window.openKasbonDetail = function(kasbonId) { currentKasbonId = kasbonId; let k = db_kasbon.find(function(x) { return x.id == kasbonId; }); if(!k) return; let emp = db_karyawan.find(function(e) { return e.id == k.emp_id; }); document.getElementById('kasbon-detail-title').innerText = "Detail Kasbon - " + (emp?emp.name:''); let angsuranList = db_angsuran.filter(function(a) { return a.kasbon_id == kasbonId; }).sort(function(a,b) { return new Date(a.tanggal_angsuran) - new Date(b.tanggal_angsuran); }); let tbody = document.querySelector('#table-angsuran tbody'); tbody.innerHTML = ''; let sisa = parseFloat(k.total_pinjaman); if(angsuranList.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada angsuran</td></tr>'; else { angsuranList.forEach(function(a, i) { sisa -= parseFloat(a.nominal); tbody.innerHTML += '<tr><td>'+a.tanggal_angsuran+'</td><td>Angsuran ke-'+(i+1)+'</td><td>'+formatRp(a.nominal)+'</td><td>'+formatRp(sisa)+'</td></tr>'; }); } document.getElementById('kasbon-detail-sisa').innerText = "Sisa Terkini: " + (sisa <= 0 ? 'LUNAS' : formatRp(sisa)); let btnAngsuran = document.getElementById('btn-tambah-angsuran'); if (btnAngsuran) { btnAngsuran.style.display = sisa <= 0 ? 'none' : 'inline-flex'; } document.getElementById('modal-kasbon-detail').style.display = 'flex'; }; window.closeKasbonDetail = function() { document.getElementById('modal-kasbon-detail').style.display = 'none'; currentKasbonId = null; }; window.openTambahAngsuran = function() { if(!currentKasbonId) return; document.getElementById('input-nominal-angsuran').value = ''; document.getElementById('modal-tambah-angsuran').style.display = 'flex'; }; window.closeTambahAngsuran = function() { document.getElementById('modal-tambah-angsuran').style.display = 'none'; }; window.saveAngsuran = async function() { let nom = parseFloat(document.getElementById('input-nominal-angsuran').value); if(!nom || nom <= 0) return; const payload = { kasbon_id: currentKasbonId, tanggal_angsuran: todayStr, nominal: nom }; const { data, error } = await supabaseApp.from('angsuran').insert([payload]).select(); if(!error) { let newObj = data ? data[0] : payload; newObj.id = newObj.id || Date.now(); db_angsuran.push(newObj); closeTambahAngsuran(); openKasbonDetail(currentKasbonId); renderKasbon(); renderDashboard(); } };
+        let currentKasbonId = null; window.openTambahKasbon = function() { let sel = document.getElementById('kasbon-emp-id'); sel.innerHTML = ''; db_karyawan.forEach(function(e) { sel.innerHTML += '<option value="'+e.id+'">'+e.name+'</option>'; }); document.getElementById('kasbon-tanggal').value = todayStr; document.getElementById('kasbon-total').value = ''; document.getElementById('modal-tambah-kasbon').style.display = 'flex'; }; window.closeTambahKasbon = function() { document.getElementById('modal-tambah-kasbon').style.display = 'none'; }; window.saveKasbon = async function() { let emp_id = parseInt(document.getElementById('kasbon-emp-id').value); let tanggal = document.getElementById('kasbon-tanggal').value; let total = parseFloat(document.getElementById('kasbon-total').value); if(!tanggal || !total || total <= 0) return; const payload = { emp_id: emp_id, tanggal_pinjaman: tanggal, total_pinjaman: total }; const { data, error } = await supabaseApp.from('kasbon').insert([payload]).select(); if(!error) { let newObj = data ? data[0] : payload; newObj.id = newObj.id || Date.now(); db_kasbon.push(newObj); closeTambahKasbon(); renderKasbon(); renderDashboard(); } }; window.openKasbonDetail = function(kasbonId) { currentKasbonId = kasbonId; let k = db_kasbon.find(function(x) { return x.id == kasbonId; }); if(!k) return; let emp = db_karyawan.find(function(e) { return e.id == k.emp_id; }); document.getElementById('kasbon-detail-title').innerText = "Detail Kasbon - " + (emp?emp.name:''); let angsuranList = db_angsuran.filter(function(a) { return a.kasbon_id == kasbonId; }).sort(function(a,b) { return new Date(a.tanggal_angsuran) - new Date(b.tanggal_angsuran); }); let tbody = document.querySelector('#table-angsuran tbody'); tbody.innerHTML = ''; let sisa = parseFloat(k.total_pinjaman); if(angsuranList.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada angsuran</td></tr>'; else { angsuranList.forEach(function(a, i) { sisa -= parseFloat(a.nominal); tbody.innerHTML += '<tr><td>'+a.tanggal_angsuran+'</td><td>Angsuran ke-'+(i+1)+'</td><td>'+formatRp(a.nominal)+'</td><td>'+formatRp(sisa)+'</td></tr>'; }); } document.getElementById('kasbon-detail-sisa').innerText = "Sisa Terkini: " + (sisa <= 0 ? 'LUNAS' : formatRp(sisa)); let btnAngsuran = document.getElementById('btn-tambah-angsuran'); if (btnAngsuran) { btnAngsuran.style.display = sisa <= 0 ? 'none' : 'inline-flex'; } document.getElementById('modal-kasbon-detail').style.display = 'flex'; }; window.closeKasbonDetail = function() { document.getElementById('modal-kasbon-detail').style.display = 'none'; currentKasbonId = null; }; window.openTambahAngsuran = function() { if(!currentKasbonId) return; document.getElementById('input-nominal-angsuran').value = ''; document.getElementById('modal-tambah-angsuran').style.display = 'flex'; }; window.closeTambahAngsuran = function() { document.getElementById('modal-tambah-angsuran').style.display = 'none'; }; window.saveAngsuran = async function() { 
+            let nom = parseFloat(document.getElementById('input-nominal-angsuran').value); 
+            if(!nom || nom <= 0) {
+                alert("Harap masukkan nominal angsuran yang valid (lebih dari 0)!");
+                return; 
+            }
+
+            let btn = document.getElementById('btn-save-angsuran');
+            if(btn) { btn.disabled = true; btn.innerText = "Menyimpan..."; }
+
+            const payload = { kasbon_id: currentKasbonId, tanggal_angsuran: todayStr, nominal: nom }; 
+            const { data, error } = await supabaseApp.from('angsuran').insert([payload]).select(); 
+            
+            if(!error) { 
+                let newObj = data ? data[0] : payload; 
+                newObj.id = newObj.id || Date.now(); 
+                db_angsuran.push(newObj); 
+                closeTambahAngsuran(); 
+                openKasbonDetail(currentKasbonId); 
+                renderKasbon(); 
+                renderDashboard(); 
+            } else {
+                alert("Sistem Gagal Menyimpan Angsuran: " + error.message);
+            }
+
+            if(btn) { btn.disabled = false; btn.innerText = "Simpan Angsuran"; }
+        };
 
 
         // ================== LOGIC PERFORMA KARYAWAN ==================
@@ -3054,6 +3080,13 @@
                 }
 
                 let tipe = getTipeHariByDate(checkDate);
+                
+                // --- LOGIKA BARU: CEGAH ALFA OTOMATIS DI HARI LIBUR ---
+                // Jika tanggal ini diatur sebagai Hari Libur di kalender, robot dilewati (tidak memberi Alfa)
+                if (tipe === 'Libur' || tipe === 'Hari Libur') {
+                    continue; 
+                }
+
                 let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
 
                 activeEmps.forEach(emp => {
@@ -3232,17 +3265,31 @@
             let rawAb = db_absensi.find(a => a.emp_id == empId && a.date === date);
             let oldAb = rawAb ? JSON.parse(JSON.stringify(rawAb)) : null;
             
-            let oldP = oldAb && oldAb.poin_pokok_override !== null ? oldAb.poin_pokok_override : 'Otomatis Kalkulator';
-            let oldE = oldAb && oldAb.poin_ekstra_override !== null ? oldAb.poin_ekstra_override : 'Otomatis Kalkulator';
+            // PERBAIKAN: Hitung angka poin otomatis sistem sebagai nilai dasar
+            let pCalc = { pokok: 0, ekstra: 0 };
+            if (oldAb) {
+                let tHari = oldAb.tipe_hari || (oldAb.is_weekend ? 'Weekend' : 'Weekday');
+                pCalc = hitungPoinUtuh(oldAb.clock_in, oldAb.clock_out, tHari);
+            }
             
-            let newP = document.getElementById('edit-absensi-pokok').value || 'Otomatis Kalkulator';
-            let newE = document.getElementById('edit-absensi-ekstra').value || 'Otomatis Kalkulator';
+            // Jika nilai override tidak null (ada isinya), tampilkan angka tersebut + teks (Manual).
+            // Jika null, tampilkan angka dari pCalc + teks (Auto).
+            let oldP = (oldAb && oldAb.poin_pokok_override !== null && oldAb.poin_pokok_override !== undefined) 
+                        ? `${oldAb.poin_pokok_override} (Manual)` : `${pCalc.pokok} (Auto)`;
+            let oldE = (oldAb && oldAb.poin_ekstra_override !== null && oldAb.poin_ekstra_override !== undefined) 
+                        ? `${oldAb.poin_ekstra_override} (Manual)` : `${pCalc.ekstra} (Auto)`;
+            
+            let inP = document.getElementById('edit-absensi-pokok').value;
+            let inE = document.getElementById('edit-absensi-ekstra').value;
+            
+            let newP = inP !== '' ? `${inP} (Manual)` : `${pCalc.pokok} (Auto)`;
+            let newE = inE !== '' ? `${inE} (Manual)` : `${pCalc.ekstra} (Auto)`;
             
             await originalSaveEditAbsensi();
             try {
                 let changed = []; let oH = ''; let nH = '';
-                if (String(oldP) !== String(newP)) { changed.push('Poin Pokok'); oH += `Poin Pokok: ${oldP}<br>`; nH += `Poin Pokok: ${newP}<br>`; }
-                if (String(oldE) !== String(newE)) { changed.push('Poin Ekstra'); oH += `Poin Ekstra: ${oldE}<br>`; nH += `Poin Ekstra: ${newE}<br>`; }
+                if (oldP !== newP) { changed.push('Poin Pokok'); oH += `Poin Pokok: <strong>${oldP}</strong><br>`; nH += `Poin Pokok: <strong>${newP}</strong><br>`; }
+                if (oldE !== newE) { changed.push('Poin Ekstra'); oH += `Poin Ekstra: <strong>${oldE}</strong><br>`; nH += `Poin Ekstra: <strong>${newE}</strong><br>`; }
                 
                 if (changed.length > 0) {
                     let desc = `Melakukan override/edit manual nilai poin absensi milik <strong>${name}</strong> tgl <strong>${date}</strong> (Perubahan pada: <span style="color:var(--primary); font-weight:700;">${changed.join(', ')}</span>).`;
@@ -3310,14 +3357,16 @@
         // --- LOG SP ---
         const originalAssignSP = window.assignSP;
         window.assignSP = async function(level) {
-            let empId = currentSPEmpId;
-            let emp = db_karyawan.find(e => e.id === empId);
-            let oldLevel = getSPLokal(emp); // Sudah berupa teks primitif
+            // PERBAIKAN: Ambil nama langsung dari HTML Pop-up
+            let empName = document.getElementById('sp-emp-name').innerText;
+            let emp = db_karyawan.find(e => e.name === empName);
+            let empId = emp ? emp.id : null;
+            let oldLevel = emp ? getSPLokal(emp) : 'NONE';
             
             await originalAssignSP(level);
             try {
                 let empAfter = db_karyawan.find(e => e.id === empId);
-                if(oldLevel !== level && (empAfter.sp_level === level || (level === 'NONE' && empAfter.sp_level === 'NONE'))) {
+                if(empAfter && oldLevel !== level && (empAfter.sp_level === level || (level === 'NONE' && empAfter.sp_level === 'NONE'))) {
                     let desc = `Memperbarui tingkatan Surat Peringatan (SP) untuk <strong>${emp.name}</strong>.`;
                     let oH = `Status SP: <strong>${oldLevel}</strong>`;
                     let nH = `Status SP: <strong style="color:var(--danger);">${level}</strong>`;
@@ -3329,11 +3378,17 @@
         // --- LOG PAYROLL BONUS ---
         const originalSaveBonus = window.saveBonus;
         window.saveBonus = async function() {
-            let empId = currentEditEmpId;
+            // PERBAIKAN: Ambil referensi karyawan & tanggal langsung dari elemen HTML
             let name = document.getElementById('modal-emp-name').value;
-            let bonusKey = empId + "_" + dateRangePayroll.start; 
+            let emp = db_karyawan.find(e => e.name === name);
+            let empId = emp ? emp.id : null;
+            
+            let rawPeriod = document.getElementById('date-range-payroll').value || "";
+            let startPeriod = rawPeriod.split("to")[0].trim();
+            let bonusKey = empId + "_" + startPeriod; 
+            
             let rawB = db_bonus[bonusKey] || {}; 
-            let b = JSON.parse(JSON.stringify(rawB)); // Deep clone 
+            let b = JSON.parse(JSON.stringify(rawB)); 
             
             let oldGPokok = b.gaji_pokok_override !== null && b.gaji_pokok_override !== undefined ? formatUangLog(b.gaji_pokok_override) : 'Auto Sistem';
             let oldPBonus = b.poin || 0;
@@ -3380,14 +3435,17 @@
         const originalSaveAngsuran = window.saveAngsuran;
         window.saveAngsuran = async function() {
             let nom = document.getElementById('input-nominal-angsuran').value;
-            let kasbonData = db_kasbon.find(k => k.id == currentKasbonId);
-            let emp = kasbonData ? db_karyawan.find(e => e.id == kasbonData.emp_id) : null;
+            
+            // PERBAIKAN: Tarik nama dari Judul Pop-up (Detail Kasbon - Nama) agar sistem log jalan lancar
+            let titleText = document.getElementById('kasbon-detail-title').innerText || "";
+            let empName = titleText.replace('Detail Kasbon - ', '').trim();
+            
             let beforeCount = db_angsuran.length;
             
             await originalSaveAngsuran();
             try {
                 if(db_angsuran.length > beforeCount && nom) {
-                    let desc = `Menerima dana pembayaran angsuran kasbon/cicilan dari karyawan bernama <strong>${emp?emp.name:'-'}</strong>.`;
+                    let desc = `Menerima dana pembayaran angsuran kasbon/cicilan dari karyawan bernama <strong>${empName || '-'}</strong>.`;
                     let newHtml = `Nominal Pembayaran Diterima: <strong style="color:var(--primary);">${formatUangLog(nom)}</strong>`;
                     await catatLogSistem('BAYAR', `Angsuran Kasbon`, createSingleHTML(desc, 'PEMBAYARAN DITERIMA', 'fa-solid fa-money-bill-wave', '#d1fae5', '#34d399', '#047857', newHtml));
                 }
