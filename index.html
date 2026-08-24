@@ -3087,8 +3087,8 @@
             if (typeof supabaseApp === 'undefined' || !supabaseApp) return;
             
             let newRecords = [];
-            // Aturan Baru: Part Time TIDAK akan terkena Auto Alfa
-            let activeEmps = db_karyawan.filter(k => (k.status_kerja === 'Aktif' || k.is_active === true) && k.status_kerja !== 'Resign' && k.status_pegawai !== 'Part Time');
+            // Aturan Baru: Part Time dan Karyawan "Tidak Aktif/Resign" TIDAK terkena Auto Alfa
+            let activeEmps = db_karyawan.filter(k => k.status_kerja === 'Aktif' && k.status_pegawai !== 'Part Time');
             
             // Robot mengecek hari ini dan 3 hari ke belakang (Jaga-jaga jika aplikasi tidak dibuka berhari-hari saat libur)
             for (let i = 0; i <= 3; i++) {
@@ -3133,26 +3133,41 @@
                 });
             }
 
-            // Jika robot menemukan data kosong, langsung tembak ke database Supabase secara diam-diam
-            if (newRecords.length > 0) {
-                try {
-                    const { data, error } = await supabaseApp.from('absensi').insert(newRecords).select();
+        // Jika robot menemukan data kosong, langsung tembak ke database Supabase secara diam-diam
+        if (newRecords.length > 0) {
+            try {
+                // PENCEGAHAN DOBEL: Lakukan validasi silang (cross-check) ke database sebelum insert
+                let datesToCheck = [...new Set(newRecords.map(r => r.date))];
+                let empIdsToCheck = [...new Set(newRecords.map(r => r.emp_id))];
+                
+                let { data: existingData } = await supabaseApp.from('absensi')
+                    .select('emp_id, date')
+                    .in('date', datesToCheck)
+                    .in('emp_id', empIdsToCheck);
+                
+                // Buang data yang ternyata sudah ada di database (ditambahkan oleh Admin lain)
+                let safeRecords = newRecords.filter(nr => {
+                    let isExist = existingData && existingData.find(ex => ex.emp_id === nr.emp_id && ex.date === nr.date);
+                    return !isExist;
+                });
+
+                if (safeRecords.length > 0) {
+                    const { data, error } = await supabaseApp.from('absensi').insert(safeRecords).select();
                     if (error) throw error;
-                    
-                    // Ganti data sementara dengan data resmi dari Supabase (yang ada ID-nya)
+
                     if (data) {
-                        newRecords.forEach(nr => {
+                        safeRecords.forEach(nr => {
                             let idx = db_absensi.findIndex(a => a.emp_id === nr.emp_id && a.date === nr.date && !a.id);
                             let realData = data.find(d => d.emp_id === nr.emp_id && d.date === nr.date);
                             if (idx > -1 && realData) db_absensi[idx] = realData;
                         });
                     }
                     
-                    // Segarkan tampilan secara visual tanpa disadari user
-                    renderAbsensi(); renderDashboard(); renderPerforma();
-                } catch (err) {
-                    console.error("Background Task Error (Auto Alfa): ", err.message);
+                    // Gunakan refresh tunggal agar tidak freeze
+                    refreshHalamanAktif();
                 }
+            } catch (err) {
+                console.error("Background Task Error (Auto Alfa): ", err.message);
             }
         }
 
