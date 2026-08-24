@@ -3090,65 +3090,63 @@
         window.openLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'flex'; };
         window.closeLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'none'; };
 
-        // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Lapor Pop-up)
-        async function runAutoAlfaBackground() {
-            if (typeof supabaseApp === 'undefined' || !supabaseApp) return;
-            
-            let newRecords = [];
-            
-            // PERBAIKAN 1: Filter Karyawan Aktif yang BENAR (Sama persis dengan Payroll)
-            let activeEmps = db_karyawan.filter(k => {
-                let status = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign');
-                return status === 'Aktif' && k.status_pegawai !== 'Part Time';
-            });
-            
-            for (let i = 0; i <= 15; i++) {
-                let d = new Date();
-                d.setDate(d.getDate() - i);
-                let checkDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-                
-                // Hari ini (i=0) baru akan dicatat Alfa jika sudah lewat jam 23:00 malam
-                if (i === 0 && new Date().getHours() < 23) {
-                    continue; 
+            // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Interogasi)
+            async function runAutoAlfaBackground() {
+                if (typeof supabaseApp === 'undefined' || !supabaseApp) {
+                    alert("❌ ERROR: Koneksi ke Supabase terputus!");
+                    return;
                 }
-
-                let tipe = getTipeHariByDate(checkDate);
                 
-                // Hari Libur Nasional di-skip (tidak ada Alfa)
-                if (tipe === 'Libur' || tipe === 'Hari Libur') {
-                    continue; 
-                }
-
-                let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
-
-                activeEmps.forEach(emp => {
-                    // Validasi Tanggal Join
-                    if (emp.join_date) {
-                        let joinDate = new Date(emp.join_date);
-                        let targetDate = new Date(checkDate);
-                        if (targetDate < joinDate) return; 
-                    }
-
-                    // Cek apakah ada data absen di memori lokal
-                    let hasRecord = db_absensi.find(a => a.emp_id === emp.id && a.date === checkDate);
-                    
-                    if (!hasRecord) {
-                        newRecords.push({
-                            emp_id: emp.id,
-                            date: checkDate,
-                            clock_in: null,
-                            clock_out: null,
-                            is_weekend: is_weekend,
-                            tipe_hari: tipe,
-                            status_absen: 'Alfa',
-                            keterangan: 'Otomatis by Sistem'
-                        });
-                    }
+                let newRecords = [];
+                
+                let activeEmps = db_karyawan.filter(k => {
+                    let status = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign');
+                    return status === 'Aktif' && k.status_pegawai !== 'Part Time';
                 });
-            }
-
-            // Jika ada data Alfa yang harus dimasukkan
-            if (newRecords.length > 0) {
+                
+                for (let i = 0; i <= 15; i++) {
+                    let d = new Date();
+                    d.setDate(d.getDate() - i);
+                    let checkDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                    
+                    if (i === 0 && new Date().getHours() < 23) continue; 
+                    
+                    let tipe = getTipeHariByDate(checkDate);
+                    if (tipe === 'Libur' || tipe === 'Hari Libur') continue; 
+                    
+                    let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
+    
+                    activeEmps.forEach(emp => {
+                        if (emp.join_date) {
+                            let joinDate = new Date(emp.join_date);
+                            let targetDate = new Date(checkDate);
+                            if (targetDate < joinDate) return; 
+                        }
+    
+                        let hasRecord = db_absensi.find(a => a.emp_id === emp.id && a.date === checkDate);
+                        
+                        if (!hasRecord) {
+                            newRecords.push({
+                                emp_id: emp.id,
+                                date: checkDate,
+                                clock_in: null,
+                                clock_out: null,
+                                is_weekend: is_weekend,
+                                tipe_hari: tipe,
+                                status_absen: 'Alfa',
+                                keterangan: 'Otomatis by Sistem'
+                            });
+                        }
+                    });
+                }
+    
+                // 👇👇 JIKA TIDAK ADA DATA ALFA, ROBOT TETAP WAJIB LAPOR 👇👇
+                if (newRecords.length === 0) {
+                    alert(`🕵️‍♂️ LAPORAN DIAGNOSTIK ROBOT:\n\n- Saya memantau: ${activeEmps.length} Karyawan Aktif\n- Selama: 15 Hari ke belakang\n- Hasilnya: Saya tidak menemukan absen kosong satupun. Semua aman / sudah terisi!`);
+                    return; // Berhenti di sini
+                }
+    
+                // Jika ada data Alfa yang harus dimasukkan
                 try {
                     let datesToCheck = [...new Set(newRecords.map(r => r.date))];
                     let empIdsToCheck = [...new Set(newRecords.map(r => r.emp_id))];
@@ -3164,22 +3162,21 @@
                         let isExist = existingData && existingData.find(ex => ex.emp_id === nr.emp_id && ex.date === nr.date);
                         return !isExist;
                     });
-
+    
                     if (safeRecords.length > 0) {
-                        // Tembak data ke database
                         const { data, error } = await supabaseApp.from('absensi').insert(safeRecords).select();
                         if (error) throw error;
-
+    
                         if (data) {
                             data.forEach(realData => { db_absensi.push(realData); });
                             refreshHalamanAktif();
                             
-                            // 👇👇 INI NOTIFIKASINYA (Akan muncul di layar) 👇👇
                             alert(`🤖 ROBOT ALFA BERHASIL!\nSistem otomatis telah menemukan dan memasukkan ${safeRecords.length} data Alfa baru ke database.`);
                         }
+                    } else {
+                        alert(`🕵️‍♂️ LAPORAN ROBOT:\nAda ${newRecords.length} absen kosong, TAPI ternyata di server (Supabase) datanya sudah ada! Jadi saya batalkan agar tidak dobel.`);
                     }
                 } catch (err) {
-                    // 👇👇 INI NOTIFIKASI JIKA ADA ERROR DATABASE LAGI 👇👇
                     alert("❌ ROBOT ALFA GAGAL JALAN!\nDatabase menolak karena: " + err.message);
                     console.error("Background Task Error: ", err.message);
                 }
