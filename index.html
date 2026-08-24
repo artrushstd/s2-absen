@@ -3082,30 +3082,28 @@
         window.closeLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'none'; };
 
         // Robot Background: Cek dan eksekusi Alfa diam-diam
+        // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Diperbaiki)
         async function runAutoAlfaBackground() {
-            // Supaya robot tidak error jika koneksi telat:
             if (typeof supabaseApp === 'undefined' || !supabaseApp) return;
             
             let newRecords = [];
-            // Aturan Baru: Part Time dan Karyawan "Tidak Aktif/Resign" TIDAK terkena Auto Alfa
+            // Mengambil karyawan aktif, selain part time
             let activeEmps = db_karyawan.filter(k => k.status_kerja === 'Aktif' && k.status_pegawai !== 'Part Time');
             
-            // Robot mengecek hari ini dan 3 hari ke belakang (Jaga-jaga jika aplikasi tidak dibuka berhari-hari saat libur)
+            // Cek 3 hari ke belakang + hari ini
             for (let i = 0; i <= 3; i++) {
                 let d = new Date();
                 d.setDate(d.getDate() - i);
                 let checkDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
                 
-                // ATURAN: Jika mengecek hari ini (i === 0), pastikan sudah lewat jam 22:00 malam.
-                // Jika belum jam 22:00, robot melewati hari ini karena karyawan shift Siang mungkin belum berangkat.
-                if (i === 0 && new Date().getHours() < 22) {
+                // PERBAIKAN 1: Eksekusi hari ini dimundurkan jadi jam 23:00 agar lebih aman (menunggu shift malam absen masuk)
+                if (i === 0 && new Date().getHours() < 23) {
                     continue; 
                 }
 
                 let tipe = getTipeHariByDate(checkDate);
                 
-                // --- LOGIKA BARU: CEGAH ALFA OTOMATIS DI HARI LIBUR ---
-                // Jika tanggal ini diatur sebagai Hari Libur di kalender, robot dilewati (tidak memberi Alfa)
+                // Libur kalender di-skip
                 if (tipe === 'Libur' || tipe === 'Hari Libur') {
                     continue; 
                 }
@@ -3113,8 +3111,16 @@
                 let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
 
                 activeEmps.forEach(emp => {
+                    // PERBAIKAN 2: Validasi Tanggal Join (Karyawan baru tidak kena Alfa mundur)
+                    if (emp.join_date) {
+                        let joinDate = new Date(emp.join_date);
+                        let targetDate = new Date(checkDate);
+                        if (targetDate < joinDate) return; // Skip proses untuk karyawan ini
+                    }
+
+                    // Cek apakah ada data absen di memori lokal
                     let hasRecord = db_absensi.find(a => a.emp_id === emp.id && a.date === checkDate);
-                    // Jika benar-benar kosong, siapkan data Alfa
+                    
                     if (!hasRecord) {
                         let objAlfa = {
                             emp_id: emp.id,
@@ -3127,47 +3133,48 @@
                             keterangan: 'Otomatis by Sistem'
                         };
                         newRecords.push(objAlfa);
-                        // Push sementara ke tabel lokal agar tidak terdeteksi ganda di loop selanjutnya
-                        db_absensi.push(objAlfa);
+                        // PERBAIKAN 3: db_absensi.push(objAlfa) DIHAPUS DARI SINI agar tidak terjadi memori bocor (data palsu)
                     }
                 });
             }
 
-        // Jika robot menemukan data kosong, langsung tembak ke database Supabase secara diam-diam
-        if (newRecords.length > 0) {
-            try {
-                // PENCEGAHAN DOBEL: Lakukan validasi silang (cross-check) ke database sebelum insert
-                let datesToCheck = [...new Set(newRecords.map(r => r.date))];
-                let empIdsToCheck = [...new Set(newRecords.map(r => r.emp_id))];
-                
-                let { data: existingData } = await supabaseApp.from('absensi')
-                    .select('emp_id, date')
-                    .in('date', datesToCheck)
-                    .in('emp_id', empIdsToCheck);
-                
-                // Buang data yang ternyata sudah ada di database (ditambahkan oleh Admin lain)
-                let safeRecords = newRecords.filter(nr => {
-                    let isExist = existingData && existingData.find(ex => ex.emp_id === nr.emp_id && ex.date === nr.date);
-                    return !isExist;
-                });
-
-                if (safeRecords.length > 0) {
-                    const { data, error } = await supabaseApp.from('absensi').insert(safeRecords).select();
-                    if (error) throw error;
-
-                    if (data) {
-                        safeRecords.forEach(nr => {
-                            let idx = db_absensi.findIndex(a => a.emp_id === nr.emp_id && a.date === nr.date && !a.id);
-                            let realData = data.find(d => d.emp_id === nr.emp_id && d.date === nr.date);
-                            if (idx > -1 && realData) db_absensi[idx] = realData;
-                        });
-                    }
+            // Jika ada yang belum absen
+            if (newRecords.length > 0) {
+                try {
+                    // PERBAIKAN 4: Cross-check ke server untuk memastikan data benar-benar kosong
+                    let datesToCheck = [...new Set(newRecords.map(r => r.date))];
+                    let empIdsToCheck = [...new Set(newRecords.map(r => r.emp_id))];
                     
-                    // Gunakan refresh tunggal agar tidak freeze
-                    refreshHalamanAktif();
+                    let { data: existingData, error: checkError } = await supabaseApp.from('absensi')
+                        .select('emp_id, date')
+                        .in('date', datesToCheck)
+                        .in('emp_id', empIdsToCheck);
+                        
+                    if (checkError) throw checkError;
+                    
+                    // Filter: Hanya ambil yang benar-benar TIDAK ADA di server
+                    let safeRecords = newRecords.filter(nr => {
+                        let isExist = existingData && existingData.find(ex => ex.emp_id === nr.emp_id && ex.date === nr.date);
+                        return !isExist;
+                    });
+
+                    if (safeRecords.length > 0) {
+                        // Tembak ke server
+                        const { data, error } = await supabaseApp.from('absensi').insert(safeRecords).select();
+                        if (error) throw error;
+
+                        if (data) {
+                            // PERBAIKAN 5: Masukkan ke memori LOKAL HANYA JIKA BERHASIL TERSIMPAN DI SERVER
+                            data.forEach(realData => {
+                                db_absensi.push(realData);
+                            });
+                            // Refresh layar
+                            refreshHalamanAktif();
+                        }
+                    }
+                } catch (err) {
+                    console.error("Background Task Error (Auto Alfa): ", err.message);
                 }
-            } catch (err) {
-                console.error("Background Task Error (Auto Alfa): ", err.message);
             }
         }
 
