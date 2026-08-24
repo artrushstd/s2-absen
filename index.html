@@ -2242,14 +2242,23 @@
         };
         
         // 3. Validasi Form & Panggil Pop-Up Konfirmasi
+        // 3. Validasi Form & Panggil Pop-Up Konfirmasi (Versi Diperbaiki)
         window.confirmSaveAbsensi = function() {
             let empId = document.getElementById('manual-abs-emp').value;
             let date = document.getElementById('manual-abs-date').value;
             let cin = document.getElementById('manual-abs-in').value;
+            let statusAbs = document.getElementById('manual-abs-status').value;
             
-            if(!empId || !date || !cin) {
-                return alert("Harap isi Karyawan, Tanggal, dan Jam Masuk terlebih dahulu!");
+            // Validasi Karyawan dan Tanggal (Wajib untuk semua status)
+            if(!empId || !date) {
+                return alert("Harap pilih Karyawan dan Tanggal terlebih dahulu!");
             }
+
+            // Validasi khusus status "Hadir" (Wajib ada Jam Masuk)
+            if (statusAbs === 'Hadir' && !cin) {
+                return alert("Harap isi Jam Masuk untuk status Hadir!");
+            }
+            
             document.getElementById('modal-confirm-absensi').style.display = 'flex';
         };
         
