@@ -1032,6 +1032,7 @@
 
     <script>
     var db_karyawan = []; var db_absensi = []; var db_bonus = {}; var db_kasbon = []; var db_angsuran = []; var db_kalender = []; var db_logs = [];
+    var supabaseApp = null;
         // --- STATE VARIABEL FILTER & SORTING GLOBAL ---
         let currentAbsensiFilterName = null; 
         let currentPayrollFilterName = null;
@@ -1092,7 +1093,6 @@
         const supabaseUrl = 'https://ezuqjvcvrajhutijzggs.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6dXFqdmN2cmFqaHV0aWp6Z2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5ODA2MzcsImV4cCI6MjA5MzU1NjYzN30.x93K-iB62GO15FDq1onwyX0zIuhhbCnEpBFm8eg9qfs';
         
-        let supabaseApp = null;
         if (typeof window.supabase !== 'undefined') { supabaseApp = window.supabase.createClient(supabaseUrl, supabaseKey); }
         
         const formatRp = function(angka) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(angka); };
