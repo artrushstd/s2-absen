@@ -3081,29 +3081,33 @@
         window.openLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'flex'; };
         window.closeLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'none'; };
 
-        // Robot Background: Cek dan eksekusi Alfa diam-diam
-        // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Diperbaiki)
+        // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Disempurnakan)
         async function runAutoAlfaBackground() {
             if (typeof supabaseApp === 'undefined' || !supabaseApp) return;
             
             let newRecords = [];
-            // Mengambil karyawan aktif, selain part time
-            let activeEmps = db_karyawan.filter(k => k.status_kerja === 'Aktif' && k.status_pegawai !== 'Part Time');
             
-            // Cek 3 hari ke belakang + hari ini
-            for (let i = 0; i <= 3; i++) {
+            // PERBAIKAN 1: Filter diperkuat. Ambil yang 'Aktif' atau 'is_active = true' (Support data lama)
+            let activeEmps = db_karyawan.filter(k => 
+                (k.status_kerja === 'Aktif' || (k.status_kerja !== 'Resign' && k.is_active === true)) && 
+                k.status_pegawai !== 'Part Time'
+            );
+            
+            // PERBAIKAN 2: Jangkauan radar diperlebar dari 3 hari menjadi 15 HARI.
+            // Walaupun admin tidak buka web selama seminggu, data Alfa minggu lalu tetap aman terproses.
+            for (let i = 0; i <= 15; i++) {
                 let d = new Date();
                 d.setDate(d.getDate() - i);
                 let checkDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
                 
-                // PERBAIKAN 1: Eksekusi hari ini dimundurkan jadi jam 23:00 agar lebih aman (menunggu shift malam absen masuk)
+                // Hari ini (i=0) baru akan dicatat Alfa jika sudah lewat jam 23:00 malam
                 if (i === 0 && new Date().getHours() < 23) {
                     continue; 
                 }
 
                 let tipe = getTipeHariByDate(checkDate);
                 
-                // Libur kalender di-skip
+                // Hari Libur Nasional di-skip (tidak ada Alfa)
                 if (tipe === 'Libur' || tipe === 'Hari Libur') {
                     continue; 
                 }
@@ -3111,11 +3115,11 @@
                 let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
 
                 activeEmps.forEach(emp => {
-                    // PERBAIKAN 2: Validasi Tanggal Join (Karyawan baru tidak kena Alfa mundur)
+                    // Validasi Tanggal Join (Karyawan baru tidak kena Alfa mundur sebelum dia masuk)
                     if (emp.join_date) {
                         let joinDate = new Date(emp.join_date);
                         let targetDate = new Date(checkDate);
-                        if (targetDate < joinDate) return; // Skip proses untuk karyawan ini
+                        if (targetDate < joinDate) return; 
                     }
 
                     // Cek apakah ada data absen di memori lokal
@@ -3133,15 +3137,14 @@
                             keterangan: 'Otomatis by Sistem'
                         };
                         newRecords.push(objAlfa);
-                        // PERBAIKAN 3: db_absensi.push(objAlfa) DIHAPUS DARI SINI agar tidak terjadi memori bocor (data palsu)
                     }
                 });
             }
 
-            // Jika ada yang belum absen
+            // Jika ada data Alfa yang harus dimasukkan
             if (newRecords.length > 0) {
                 try {
-                    // PERBAIKAN 4: Cross-check ke server untuk memastikan data benar-benar kosong
+                    // Cross-check ke server agar tidak terjadi data dobel (Double Protection)
                     let datesToCheck = [...new Set(newRecords.map(r => r.date))];
                     let empIdsToCheck = [...new Set(newRecords.map(r => r.emp_id))];
                     
@@ -3159,16 +3162,15 @@
                     });
 
                     if (safeRecords.length > 0) {
-                        // Tembak ke server
+                        // Tembak data ke database (Supabase)
                         const { data, error } = await supabaseApp.from('absensi').insert(safeRecords).select();
                         if (error) throw error;
 
                         if (data) {
-                            // PERBAIKAN 5: Masukkan ke memori LOKAL HANYA JIKA BERHASIL TERSIMPAN DI SERVER
+                            // Masukkan ke memori aplikasi lokal dan refresh halaman otomatis
                             data.forEach(realData => {
                                 db_absensi.push(realData);
                             });
-                            // Refresh layar
                             refreshHalamanAktif();
                         }
                     }
