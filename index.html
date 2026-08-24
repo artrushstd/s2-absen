@@ -3090,20 +3090,18 @@
         window.openLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'flex'; };
         window.closeLogAktifitas = function() { document.getElementById('modal-log-aktifitas').style.display = 'none'; };
 
-        // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Disempurnakan)
+        // Robot Background: Cek dan eksekusi Alfa diam-diam (Versi Lapor Pop-up)
         async function runAutoAlfaBackground() {
             if (typeof supabaseApp === 'undefined' || !supabaseApp) return;
             
             let newRecords = [];
             
-            // PERBAIKAN 1: Filter diperkuat. Ambil yang 'Aktif' atau 'is_active = true' (Support data lama)
-            let activeEmps = db_karyawan.filter(k => 
-                (k.status_kerja === 'Aktif' || (k.status_kerja !== 'Resign' && k.is_active === true)) && 
-                k.status_pegawai !== 'Part Time'
-            );
+            // PERBAIKAN 1: Filter Karyawan Aktif yang BENAR (Sama persis dengan Payroll)
+            let activeEmps = db_karyawan.filter(k => {
+                let status = k.status_kerja || (k.is_active ? 'Aktif' : 'Resign');
+                return status === 'Aktif' && k.status_pegawai !== 'Part Time';
+            });
             
-            // PERBAIKAN 2: Jangkauan radar diperlebar dari 3 hari menjadi 15 HARI.
-            // Walaupun admin tidak buka web selama seminggu, data Alfa minggu lalu tetap aman terproses.
             for (let i = 0; i <= 15; i++) {
                 let d = new Date();
                 d.setDate(d.getDate() - i);
@@ -3124,7 +3122,7 @@
                 let is_weekend = (tipe === 'Weekend' || tipe === 'Libur');
 
                 activeEmps.forEach(emp => {
-                    // Validasi Tanggal Join (Karyawan baru tidak kena Alfa mundur sebelum dia masuk)
+                    // Validasi Tanggal Join
                     if (emp.join_date) {
                         let joinDate = new Date(emp.join_date);
                         let targetDate = new Date(checkDate);
@@ -3135,7 +3133,7 @@
                     let hasRecord = db_absensi.find(a => a.emp_id === emp.id && a.date === checkDate);
                     
                     if (!hasRecord) {
-                        let objAlfa = {
+                        newRecords.push({
                             emp_id: emp.id,
                             date: checkDate,
                             clock_in: null,
@@ -3144,8 +3142,7 @@
                             tipe_hari: tipe,
                             status_absen: 'Alfa',
                             keterangan: 'Otomatis by Sistem'
-                        };
-                        newRecords.push(objAlfa);
+                        });
                     }
                 });
             }
@@ -3153,7 +3150,6 @@
             // Jika ada data Alfa yang harus dimasukkan
             if (newRecords.length > 0) {
                 try {
-                    // Cross-check ke server agar tidak terjadi data dobel (Double Protection)
                     let datesToCheck = [...new Set(newRecords.map(r => r.date))];
                     let empIdsToCheck = [...new Set(newRecords.map(r => r.emp_id))];
                     
@@ -3164,27 +3160,28 @@
                         
                     if (checkError) throw checkError;
                     
-                    // Filter: Hanya ambil yang benar-benar TIDAK ADA di server
                     let safeRecords = newRecords.filter(nr => {
                         let isExist = existingData && existingData.find(ex => ex.emp_id === nr.emp_id && ex.date === nr.date);
                         return !isExist;
                     });
 
                     if (safeRecords.length > 0) {
-                        // Tembak data ke database (Supabase)
+                        // Tembak data ke database
                         const { data, error } = await supabaseApp.from('absensi').insert(safeRecords).select();
                         if (error) throw error;
 
                         if (data) {
-                            // Masukkan ke memori aplikasi lokal dan refresh halaman otomatis
-                            data.forEach(realData => {
-                                db_absensi.push(realData);
-                            });
+                            data.forEach(realData => { db_absensi.push(realData); });
                             refreshHalamanAktif();
+                            
+                            // 👇👇 INI NOTIFIKASINYA (Akan muncul di layar) 👇👇
+                            alert(`🤖 ROBOT ALFA BERHASIL!\nSistem otomatis telah menemukan dan memasukkan ${safeRecords.length} data Alfa baru ke database.`);
                         }
                     }
                 } catch (err) {
-                    console.error("Background Task Error (Auto Alfa): ", err.message);
+                    // 👇👇 INI NOTIFIKASI JIKA ADA ERROR DATABASE LAGI 👇👇
+                    alert("❌ ROBOT ALFA GAGAL JALAN!\nDatabase menolak karena: " + err.message);
+                    console.error("Background Task Error: ", err.message);
                 }
             }
         }
