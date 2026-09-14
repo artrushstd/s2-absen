@@ -1083,6 +1083,37 @@
             try { if(localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('theme-toggle-btn').className = "fa-solid fa-sun theme-toggle"; } } catch(e) {}
         }
 
+        // Fungsi baru untuk menarik data absensi berdasarkan tanggal filter
+        window.fetchAndMergeAbsensi = async function(startDate, endDate) {
+            document.getElementById('loading-indicator').style.display = 'inline-block';
+            try {
+                let { data, error } = await supabaseApp
+                    .from('absensi')
+                    .select('*')
+                    .gte('date', startDate)
+                    .lte('date', endDate)
+                    .order('date', { ascending: false });
+        
+                if (!error && data && data.length > 0) {
+                    // Perbaiki status is_weekend seperti aslinya
+                    data.forEach(function(ab) {
+                        if (ab.date && !ab.tipe_hari) {
+                            var d = new Date(ab.date + "T00:00:00");
+                            if (d.getDay() === 0) { ab.is_weekend = true; ab.tipe_hari = 'Weekend'; }
+                        }
+                    });
+        
+                    // Gabungkan data baru ke db_absensi tanpa membuat duplikat
+                    let newIds = new Set(data.map(d => d.id));
+                    db_absensi = db_absensi.filter(d => !newIds.has(d.id)).concat(data);
+                }
+            } catch (e) {
+                console.error("Gagal menarik data range:", e);
+            } finally {
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        };
+        
         function startApplication() {
             initTheme();
             if (typeof flatpickr !== 'undefined') {
@@ -1127,7 +1158,13 @@
                 let { data: karyawan } = await supabaseApp.from('karyawan').select('*').order('id', { ascending: true });
                 if(karyawan) db_karyawan = karyawan;
                 
-                let { data: absensi } = await supabaseApp.from('absensi').select('*').order('date', { ascending: false }).limit(3000);
+                // Hitung tanggal 2 bulan yang lalu (Agar dashboard selalu siap)
+                let dLimit = new Date();
+                dLimit.setMonth(dLimit.getMonth() - 2);
+                let limitBulanLalu = dLimit.toISOString().split('T')[0];
+                
+                // Hanya tarik data dari 2 bulan terakhir saat pertama login
+                let { data: absensi } = await supabaseApp.from('absensi').select('*').gte('date', limitBulanLalu).order('date', { ascending: false });
                 
                 if(absensi) {
                     absensi.forEach(function(ab) {
@@ -1273,8 +1310,17 @@
             }
         };
 
-        window.changeMonth = function(direction) {
+        window.changeMonth = async function(direction) {
             currentCalDate.setMonth(currentCalDate.getMonth() + direction);
+            
+            // Hitung tanggal awal dan akhir bulan kalender yang sedang dilihat
+            let y = currentCalDate.getFullYear();
+            let m = currentCalDate.getMonth();
+            let startD = new Date(y, m, 1).toISOString().split('T')[0];
+            let endD = new Date(y, m + 1, 0).toISOString().split('T')[0];
+            
+            // Unduh data absensi di bulan tersebut
+            await fetchAndMergeAbsensi(startD, endD);
             renderCalendar();
         };
 
@@ -1909,13 +1955,15 @@
             }
         };
 
-        window.filterAbsensi = function() { 
+        window.filterAbsensi = async function() { 
             let val = document.getElementById('date-range-absensi').value;
             let range = val.split("to").map(s => s.trim()); 
             if (range.length > 0 && range[0] !== "") { 
                 dateRangeAbsensi.start = range[0]; 
                 dateRangeAbsensi.end = range[1] || range[0]; 
             } 
+            // Tarik data dari server dulu, baru render
+            await fetchAndMergeAbsensi(dateRangeAbsensi.start, dateRangeAbsensi.end);
             renderAbsensi(); 
         };
         
@@ -2139,13 +2187,15 @@
             btn.disabled = false; btn.innerText = 'Ya, Simpan';
         };
 
-        window.filterPayroll = function() { 
+        window.filterPayroll = async function() { 
             let val = document.getElementById('date-range-payroll').value;
             let range = val.split("to").map(s => s.trim()); 
             if (range.length > 0 && range[0] !== "") { 
                 dateRangePayroll.start = range[0]; 
                 dateRangePayroll.end = range[1] || range[0]; 
             } 
+            // Tarik data dari server dulu, baru render
+            await fetchAndMergeAbsensi(dateRangePayroll.start, dateRangePayroll.end);
             renderPayroll(); 
         };
 
@@ -3233,13 +3283,15 @@
             renderPerforma();
         };
 
-        window.filterPerforma = function() { 
+        window.filterPerforma = async function() { 
             let val = document.getElementById('date-range-performa').value;
             let range = val.split("to").map(s => s.trim()); 
             if (range.length > 0 && range[0] !== "") { 
                 dateRangePerforma.start = range[0]; 
                 dateRangePerforma.end = range[1] || range[0]; 
             } 
+            // Tarik data dari server dulu, baru render
+            await fetchAndMergeAbsensi(dateRangePerforma.start, dateRangePerforma.end);
             renderPerforma(); 
         };
 
