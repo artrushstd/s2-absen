@@ -1092,7 +1092,7 @@
                     .select('*')
                     .gte('date', startDate)
                     .lte('date', endDate)
-                    .order('date', { ascending: false });
+                    .order('date', { ascending: false })
                     .limit(10000);
         
                 if (!error && data && data.length > 0) {
