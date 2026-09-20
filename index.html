@@ -1093,6 +1093,7 @@
                     .gte('date', startDate)
                     .lte('date', endDate)
                     .order('date', { ascending: false });
+                    .limit(10000);
         
                 if (!error && data && data.length > 0) {
                     // Perbaiki status is_weekend seperti aslinya
@@ -1164,7 +1165,7 @@
                 let limitBulanLalu = dLimit.toISOString().split('T')[0];
                 
                 // Hanya tarik data dari 2 bulan terakhir saat pertama login
-                let { data: absensi } = await supabaseApp.from('absensi').select('*').gte('date', limitBulanLalu).order('date', { ascending: false });
+                let { data: absensi } = await supabaseApp.from('absensi').select('*').gte('date', limitBulanLalu).order('date', { ascending: false }).limit(10000);
                 
                 if(absensi) {
                     absensi.forEach(function(ab) {
