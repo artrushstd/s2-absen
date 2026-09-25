@@ -2687,83 +2687,176 @@
             let empName = emp ? emp.name : 'Unknown';
             let metode = item.metode_pembayaran || 'CASH';
             
-            // Template 1 Kwitansi
             let receiptHTML = `
-                <div class="receipt-container">
-                    <div class="header">
-                        <h2>BUKTI PENGELUARAN KAS</h2>
-                        <p>Suharno 2 - Tanda Terima Pembayaran</p>
-                    </div>
+                <div class="page-container">
                     
-                    <div class="content-wrapper">
-                        <div class="content-row"><div class="label">No. Referensi</div><div class="colon">:</div><div class="value">UK-${item.id}-${item.tanggal.replace(/-/g,'')}</div></div>
-                        <div class="content-row"><div class="label">Tanggal</div><div class="colon">:</div><div class="value">${item.tanggal}</div></div>
-                        <div class="content-row"><div class="label">Diserahkan Kepada</div><div class="colon">:</div><div class="value"><strong>${item.penerima}</strong></div></div>
-                        <div class="content-row"><div class="label">Melalui</div><div class="colon">:</div><div class="value">${empName}</div></div>
-                        <div class="content-row"><div class="label">Keperluan</div><div class="colon">:</div><div class="value">${item.keterangan}</div></div>
-                        <div class="content-row"><div class="label">Status & Metode</div><div class="colon">:</div><div class="value">${item.status_pembayaran} - <strong>${metode}</strong></div></div>
-                    </div>
-                    
-                    <div class="footer-wrapper">
-                        <div class="nominal-box">Terbilang : ${formatRp(item.nominal)}</div>
-                        <div class="signatures">
-                            <div class="sig-box">
-                                <div>Disetujui / Dibuat Oleh,</div>
-                                <div class="sig-line"></div>
-                                <div>${item.user_input} (Admin)</div>
+                    <!-- ================= BAGIAN 1: ARSIP KASIR (ATAS) ================= -->
+                    <div class="receipt-part">
+                        <div class="header">
+                            <h2>BUKTI KAS KELUAR (ARSIP INTERNAL)</h2>
+                            <p>Suharno 2 - Dokumen Pencatatan Kas</p>
+                        </div>
+                        
+                        <div class="content-wrapper">
+                            <div class="content-row"><div class="label">No. Referensi</div><div class="colon">:</div><div class="value">UK-${item.id}-${item.tanggal.replace(/-/g,'')}</div></div>
+                            <div class="content-row"><div class="label">Tanggal</div><div class="colon">:</div><div class="value">${item.tanggal}</div></div>
+                            <div class="content-row"><div class="label">Melalui (Perantara)</div><div class="colon">:</div><div class="value">${empName}</div></div>
+                            <div class="content-row"><div class="label">Penerima Akhir</div><div class="colon">:</div><div class="value"><strong>${item.penerima}</strong></div></div>
+                            <div class="content-row"><div class="label">Keperluan</div><div class="colon">:</div><div class="value">${item.keterangan}</div></div>
+                            <div class="content-row"><div class="label">Status & Metode</div><div class="colon">:</div><div class="value">${item.status_pembayaran} - <strong>${metode}</strong></div></div>
+                        </div>
+                        
+                        <div class="footer-wrapper">
+                            <div class="nominal-box">
+                                <span style="font-size: 11px; font-weight: normal;">Terbilang :</span><br>
+                                <span style="font-size: 15px;">${formatRp(item.nominal)}</span>
                             </div>
-                            <div class="sig-box">
-                                <div>Penerima / Perantara,</div>
-                                <div class="sig-line"></div>
-                                <div>${empName}</div>
+                            <div class="signatures">
+                                <div class="sig-box">
+                                    <div class="sig-title">Dikeluarkan Oleh,</div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-name">( ${item.user_input} )</div>
+                                </div>
+                                <div class="sig-box">
+                                    <div class="sig-title">Penerima Akhir,</div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-name">( ${item.penerima} )</div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ================= GARIS POTONG MURNI DASHED LINE ================= -->
+                    <div class="cut-line"></div>
+
+                    <!-- ================= BAGIAN 2: PENERIMA AKHIR (BAWAH) ================= -->
+                    <div class="receipt-part">
+                        <div class="header">
+                            <h2>KWITANSI PEMBAYARAN</h2>
+                            <p>Suharno 2 - Tanda Terima Bukti Dana Keluar</p>
+                        </div>
+                        
+                        <div class="content-wrapper">
+                            <div class="content-row"><div class="label">No. Referensi</div><div class="colon">:</div><div class="value">UK-${item.id}-${item.tanggal.replace(/-/g,'')}</div></div>
+                            <div class="content-row"><div class="label">Tanggal</div><div class="colon">:</div><div class="value">${item.tanggal}</div></div>
+                            <div class="content-row"><div class="label">Terima Dari</div><div class="colon">:</div><div class="value"><strong>Suharno 2</strong> (Melalui: ${empName})</div></div>
+                            <div class="content-row"><div class="label">Diserahkan Ke</div><div class="colon">:</div><div class="value"><strong>${item.penerima}</strong></div></div>
+                            <div class="content-row"><div class="label">Keperluan</div><div class="colon">:</div><div class="value">${item.keterangan}</div></div>
+                        </div>
+                        
+                        <div class="warning-box">
+                            Mohon pastikan kwitansi ini diterima bersamaan dengan uang tunai sesuai nominal di bawah ini. Kwitansi ini merupakan bukti serah terima yang sah apabila dana telah diterima dengan kesesuaian nominal tersebut.
+                        </div>
+                        
+                        <div class="footer-wrapper">
+                            <div class="nominal-box">
+                                <span style="font-size: 11px; font-weight: normal;">Terbilang :</span><br>
+                                <span style="font-size: 15px;">${formatRp(item.nominal)}</span>
+                            </div>
+                            <div class="signatures" style="justify-content: flex-end; width: auto;">
+                                <div class="sig-box">
+                                    <div class="sig-title">Dikeluarkan Oleh,</div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-name">( ${item.user_input} )</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             `;
         
             let html = `<html><head><title>Kwitansi Pengeluaran</title><style>
-                /* Ubah menjadi A4 Portrait dengan margin 10mm */
-                @page { size: A4 portrait; margin: 10mm; } 
+                /* MENGHILANGKAN HEADER & FOOTER DEFAULT BROWSER (about:blank) */
+                @page { size: A4 portrait; margin: 0; } 
+                
                 body { 
                     font-family: "Courier New", Courier, monospace; 
                     color: #000; 
                     margin: 0; 
-                    padding: 0; 
+                    padding: 10mm; /* Margin fisik kertas dipindah ke dalam body */
                     box-sizing: border-box; 
                 } 
                 
-                .receipt-container { 
-                    /* Set tinggi persis di bawah setengah kertas A4 (Kertas A4 tingginya 297mm, setengahnya ~148mm) */
+                /* TINGGI DIBATASI AGAR PAS SETENGAH A4 */
+                .page-container {
+                    display: flex;
+                    flex-direction: column;
                     height: 135mm; 
-                    padding: 15px 25px; 
-                    border: 2px dashed #333; 
+                }
+                
+                .receipt-part { 
+                    flex: 1; 
+                    padding: 10px 15px; 
+                    border: 1.5px dashed #333; 
                     box-sizing: border-box; 
                     display: flex; 
                     flex-direction: column; 
                     justify-content: space-between;
                 }
                 
-                .header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 8px; } 
-                .header h2 { margin: 0; font-size: 20px; text-decoration: underline; font-weight: bold; } 
-                .header p { margin: 5px 0 0 0; font-size: 13px; } 
+                .cut-line {
+                    margin: 8px 0;
+                    border-top: 2px dashed #888;
+                    width: 100%;
+                }
+                
+                .header { text-align: center; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 6px; } 
+                .header h2 { margin: 0; font-size: 15px; text-decoration: underline; font-weight: bold; } 
+                .header p { margin: 2px 0 0 0; font-size: 11px; } 
                 
                 .content-wrapper { flex-grow: 1; }
-                .content-row { margin-bottom: 8px; font-size: 14px; display: flex; align-items: flex-end; }
-                .content-row .label { width: 160px; font-weight: bold; }
-                .content-row .colon { width: 20px; }
+                .content-row { margin-bottom: 4px; font-size: 11px; display: flex; align-items: flex-end; }
+                .content-row .label { width: 140px; font-weight: bold; }
+                .content-row .colon { width: 15px; }
                 .content-row .value { flex: 1; border-bottom: 1px dotted #666; }
                 
-                /* Penyesuaian footer agar pas di format Portrait yang lebih sempit */
-                .footer-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
-                .nominal-box { background: #f0f0f0; padding: 10px 15px; font-size: 16px; font-weight: bold; border: 2px solid #000; display: inline-block; }
+                .warning-box {
+                    border: 1px solid #555;
+                    background-color: #f8f9fa;
+                    padding: 6px 8px;
+                    margin: 6px 0;
+                    font-size: 10px;
+                    text-align: center;
+                    font-style: italic;
+                }
                 
-                .signatures { display: flex; gap: 30px; text-align: center; }
-                .sig-box { width: 160px; font-size: 13px; }
-                .sig-line { margin-top: 45px; border-bottom: 1px solid #000; margin-bottom: 5px; }
+                .footer-wrapper { 
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: flex-end; 
+                    margin-top: 10px;
+                    width: 100%;
+                }
+                
+                .nominal-box { 
+                    background: #f0f0f0; 
+                    padding: 6px 12px; 
+                    font-weight: bold; 
+                    border: 1.5px solid #000; 
+                    display: inline-block;
+                    min-width: 140px;
+                }
+                
+                .signatures { 
+                    display: flex; 
+                    gap: 25px; 
+                    justify-content: flex-end;
+                }
+                
+                .sig-box { 
+                    width: 140px; 
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                }
+                
+                .sig-title { font-size: 11px; height: 20px; }
+                .sig-line { width: 100%; margin-top: 35px; border-bottom: 1px solid #000; margin-bottom: 4px; }
+                .sig-name { font-size: 11px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
                 
             </style></head><body onload="window.print();">
-                <!-- Hanya dipanggil 1 kali agar bagian bawah kertas A4 kosong -->
                 ${receiptHTML}
             </body></html>`;
             
